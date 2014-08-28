@@ -1,7 +1,7 @@
 {
   "name": "simple-cli",
   "version": "0.0.1",
-  "description": "A simple wrapper for command line APIs",
+  "description": "A simple wrapper for grunt implementations of command line APIs",
   "main": "lib/index.js",
   "scripts": {
     "test": "grunt"
