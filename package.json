@@ -4,7 +4,8 @@
   "description": "A simple wrapper for grunt implementations of command line APIs",
   "main": "lib/index.js",
   "scripts": {
-    "test": "grunt"
+    "test": "grunt",
+    "publish": "if [[ $USER == anichols ]]; then publisher run; fi"
   },
   "repository": {
     "type": "git",
