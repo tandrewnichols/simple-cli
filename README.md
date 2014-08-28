@@ -21,7 +21,7 @@ var simpleCli = require('simple-cli');
 
 module.exports = function(grunt) {
   grunt.registerMultiTask('git', 'A git wrapper', function() {
-    simpleCli(grunt, this, 'git', this.async() /* or some other callback */);
+    simpleCli.spawn(grunt, this, 'git', this.async() /* or some other callback */);
   });
 };
 ```
