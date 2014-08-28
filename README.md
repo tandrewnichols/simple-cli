@@ -20,7 +20,7 @@ This module is simple to use (hence the name). In your grunt task declaration, r
 var simpleCli = require('simple-cli');
 
 module.exports = function(grunt) {
-  grunt.registerTask('git', 'A git wrapper', function() {
+  grunt.registerMultiTask('git', 'A git wrapper', function() {
     simpleCli(grunt, this, 'git', this.async() /* or some other callback */);
   });
 };
