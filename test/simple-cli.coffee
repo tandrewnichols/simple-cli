@@ -177,3 +177,12 @@ describe 'spawn', ->
       @subject.spawn @grunt, @context, 'git', @cb
       @emitter.emit 'close', 0
     Then -> expect(@cb).to.have.been.called
+
+  describe 'task is the cmd', ->
+    Given -> @cp.spawn.withArgs('git', ['remote', 'show', 'origin'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
+    Given -> @context.target = 'remote'
+    Given -> @context.data = 'remote show origin'
+    When ->
+      @subject.spawn @grunt, @context, 'git', @cb
+      @emitter.emit 'close', 0
+    Then -> expect(@cb).to.have.been.called
