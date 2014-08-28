@@ -2,7 +2,7 @@
   "name": "simple-cli",
   "version": "0.0.1",
   "description": "A simple wrapper for command line APIs",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "grunt"
   },
@@ -46,5 +46,12 @@
   "dependencies": {
     "lodash": "^2.4.1",
     "underscore.string": "^2.3.3"
+  },
+  "config": {
+    "blanket": {
+      "pattern": [
+        "simple-cli/lib"
+      ]
+    }
   }
 }
