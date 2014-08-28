@@ -28,5 +28,23 @@
   "bugs": {
     "url": "https://github.com/tandrewnichols/simple-cli/issues"
   },
-  "homepage": "https://github.com/tandrewnichols/simple-cli"
+  "homepage": "https://github.com/tandrewnichols/simple-cli",
+  "devDependencies": {
+    "coffee-script": "^1.8.0",
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-mocha-cov": "^0.3.0",
+    "grunt-mocha-test": "^0.11.0",
+    "indeed": "^1.0.6",
+    "jshint-stylish": "^0.4.0",
+    "mocha": "git://github.com/tandrewnichols/mocha.git#suppress-stack",
+    "mocha-given": "git://github.com/tandrewnichols/mocha-given.git",
+    "mocha-lcov-reporter": "0.0.1",
+    "proxyquire": "^1.0.1",
+    "sinon": "^1.10.3"
+  },
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "underscore.string": "^2.3.3"
+  }
 }
