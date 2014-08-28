@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "grunt",
-    "publish": "if [[ $USER == anichols ]]; then publisher run; fi"
+    "publish": "if echo $USERNAME | grep -cq 'anichols'; then publisher run; fi"
   },
   "repository": {
     "type": "git",
