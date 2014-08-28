@@ -1,0 +1,32 @@
+{
+  "name": "simple-cli",
+  "version": "0.0.1",
+  "description": "A simple wrapper for command line APIs",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tandrewnichols/simple-cli.git"
+  },
+  "keywords": [
+    "easy",
+    "simple",
+    "cli",
+    "api",
+    "wrapper",
+    "git",
+    "npm"
+  ],
+  "author": {
+    "name": "Andrew Nichols",
+    "email": "tandrewnichols@gmail.com",
+    "url": "www.tandrewnichols.me"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tandrewnichols/simple-cli/issues"
+  },
+  "homepage": "https://github.com/tandrewnichols/simple-cli"
+}
