@@ -29,7 +29,7 @@
   "bugs": {
     "url": "https://github.com/tandrewnichols/simple-cli/issues"
   },
-  "homepage": "https://github.com/tandrewnichols/simple-cli",
+  "homepage": "http://www.tandrewnichols.me/modules/simple-cli",
   "devDependencies": {
     "coffee-script": "^1.8.0",
     "grunt": "^0.4.5",
@@ -46,6 +46,9 @@
     "sinon": "^1.10.3"
   },
   "dependencies": {
+    "async": "^0.9.0",
+    "chalk": "^0.5.1",
+    "key-list": "0.0.1",
     "lodash": "^2.4.1",
     "underscore.string": "^2.3.3"
   },

@@ -3,6 +3,7 @@ EventEmitter = require('events').EventEmitter
 describe 'spawn', ->
   Given -> @grunt =
     registerMultiTask: sinon.stub()
+    option: sinon.stub()
     log:
       writeln: sinon.stub()
   Given -> @context =
@@ -14,10 +15,18 @@ describe 'spawn', ->
   Given -> @context.options.returns {}
   Given -> @cp =
     spawn: sinon.stub()
+  Given -> @readline =
+    createInterface: sinon.stub()
+    '@global': true
+  Given -> @rl =
+    question: sinon.stub()
+    close: sinon.stub()
+  Given -> @readline.createInterface.returns @rl
   Given -> @emitter = new EventEmitter()
   Given -> @cwd = process.cwd()
   Given -> @subject = sandbox '../lib',
     child_process: @cp
+    readline: @readline
 
   describe 'command with options', ->
     Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'A commit message'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
@@ -186,3 +195,28 @@ describe 'spawn', ->
       @subject.spawn @grunt, @context, 'git', @cb
       @emitter.emit 'close', 0
     Then -> expect(@cb).to.have.been.called
+
+  describe 'with dynamics values', ->
+    context 'passed via grunt.option', ->
+      Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'Blah blah blah'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
+      Given -> @context.target = 'commit'
+      Given -> @context.options.returns
+        message: '{{ message }}'
+      Given -> @grunt.option.withArgs('message').returns 'Blah blah blah'
+      When ->
+        @subject.spawn @grunt, @context, 'git', @cb
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.called
+
+    context 'passed via prompt', ->
+      Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'Blah blah blah'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
+      Given -> @context.target = 'commit'
+      Given -> @context.options.returns
+        message: '{{ message }}'
+      Given -> @rl.question.withArgs('   message: ', sinon.match.func).callsArgWith(1, 'Blah blah blah')
+      When ->
+        @subject.spawn @grunt, @context, 'git', @cb
+        @emitter.emit 'close', 0
+        console.log(@rl.question.getCall(0).args[0])
+      Then -> expect(@cb).to.have.been.called
+      And -> expect(@rl.close).to.have.been.called
