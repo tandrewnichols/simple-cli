@@ -4,6 +4,8 @@ describe 'spawn', ->
   Given -> @grunt =
     registerMultiTask: sinon.stub()
     option: sinon.stub()
+    fail:
+      fatal: sinon.stub()
     log:
       writeln: sinon.stub()
   Given -> @context =
@@ -22,11 +24,14 @@ describe 'spawn', ->
     question: sinon.stub()
     close: sinon.stub()
   Given -> @readline.createInterface.returns @rl
+  Given -> @async =
+    '@global': true
   Given -> @emitter = new EventEmitter()
   Given -> @cwd = process.cwd()
   Given -> @subject = sandbox '../lib',
     child_process: @cp
     readline: @readline
+    async: @async
 
   describe 'command with options', ->
     Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'A commit message'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
@@ -219,3 +224,12 @@ describe 'spawn', ->
         @emitter.emit 'close', 0
       Then -> expect(@cb).to.have.been.called
       And -> expect(@rl.close).to.have.been.called
+
+    context 'an error occurs', ->
+      Given -> @async.reduce = sinon.stub()
+      Given -> @async.reduce.callsArgWith(3, 'error', {})
+      Given -> @context.target = 'commit'
+      Given -> @context.options.returns
+        message: '{{ message }}'
+      When -> @subject.spawn @grunt, @context, 'git', @cb
+      Then -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
