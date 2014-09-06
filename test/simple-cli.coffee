@@ -217,6 +217,5 @@ describe 'spawn', ->
       When ->
         @subject.spawn @grunt, @context, 'git', @cb
         @emitter.emit 'close', 0
-        console.log(@rl.question.getCall(0).args[0])
       Then -> expect(@cb).to.have.been.called
       And -> expect(@rl.close).to.have.been.called
