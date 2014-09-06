@@ -20,6 +20,7 @@ This module is simple to use (hence the name). In your grunt task declaration, r
 var simpleCli = require('simple-cli');
 
 module.exports = function(grunt) {
+  // This is essentially the body of the "grunt-simple-git" plugin
   grunt.registerMultiTask('git', 'A git wrapper', function() {
     simpleCli.spawn(grunt, this, 'git', this.async() /* or some other callback */);
   });
@@ -31,10 +32,10 @@ This module allows any command on the wrapped cli to be invoked as a target with
 ```javascript
 grunt.initConfig({
   git: {
-    commit: {
+    add: {
       options: {
-        a: true, // short option as a flag
-        message: 'A commit' // long option with a value
+        f: true, // short option as a flag
+        all: true // long option as a flag
       }
     },
     log: {
@@ -67,6 +68,13 @@ grunt.initConfig({
         stdio: [null, process.stdout, null], // stdio to pass to child_process.spawn - use false to turn of stdio
         force: true // Do not fail the grunt task chain if this task fails
       }
+    },
+    // As of v0.1.0
+    commit: {
+      options: {
+        squash: 'some-branch', // long option with a value
+        message: '{{ message }}' // Prompt for message at time of task run
+      }
     }
   }
 });
@@ -74,7 +82,7 @@ grunt.initConfig({
 
 The following commands are run when these tasks are invoked:
 
-`grunt git:commit`: `git commit -a --message 'A commit'
+`grunt git:add`: `git add -f --add`
 
 `grunt git:log`: `git log -n 1 --author=anichols --name-only`
 
@@ -89,5 +97,9 @@ The following commands are run when these tasks are invoked:
 `grunt git:diff`: `git diff master`
 
 `grunt git:pull`: `git pull` in `../../` directory with process.stdout as the child's stdout and ignoring failures
+
+`grunt git:commit`: `git commit --squash some-branch --message "<value entered at run time>"`
+
+You can, alternatively, provide interpolation values via `grunt.option`, so `commit` could also be run as `grunt git:commit --message "Blah blah blah"` to achieve the same effect.
 
 See [grunt-simple-git](https://github.com/tandrewnichols/grunt-simple-git) and [grunt-simple-npm](https://github.com/tandrewnichols/grunt-simple-npm) for examples and more exhaustive documentation.
