@@ -201,6 +201,26 @@ describe 'spawn', ->
       @emitter.emit 'close', 0
     Then -> expect(@cb).to.have.been.called
 
+  describe 'array-style short option', ->
+    Given -> @cp.spawn.withArgs('git', ['commit', '-a', 'foo', '-a', 'bar'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
+    Given -> @context.target = 'commit'
+    Given -> @context.options.returns
+      a: ['foo', 'bar']
+    When ->
+      @subject.spawn @grunt, @context, 'git', @cb
+      @emitter.emit 'close', 0
+    Then -> expect(@cb).to.have.been.called
+
+  describe 'array-style long option', ->
+    Given -> @cp.spawn.withArgs('git', ['commit', '--foo', 'bar', '--foo', 'baz'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
+    Given -> @context.target = 'commit'
+    Given -> @context.options.returns
+      foo: ['bar', 'baz']
+    When ->
+      @subject.spawn @grunt, @context, 'git', @cb
+      @emitter.emit 'close', 0
+    Then -> expect(@cb).to.have.been.called
+
   describe 'with dynamics values', ->
     context 'passed via grunt.option', ->
       Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'Blah blah blah'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
