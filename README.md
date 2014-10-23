@@ -76,6 +76,14 @@ grunt.initConfig({
         message: '{{ message }}' // Prompt for message at time of task run
       }
     }
+  },
+  istanbul: {
+    instrument: {
+      options: {
+        x: ['**/node_modules/**', '**/bower_components/**'] // Pass multiple options
+      },
+      cmd: 'instrument app'
+    }
   }
 });
 ```
@@ -99,6 +107,8 @@ The following commands are run when these tasks are invoked:
 `grunt git:pull`: `git pull` in `../../` directory with process.stdout as the child's stdout and ignoring failures
 
 `grunt git:commit`: `git commit --squash some-branch --message "<value entered at run time>"`
+
+`grunt istanbul:instrument`: `instanbul instrument app -x **/node_modules/** -x **/bower_components**`
 
 You can, alternatively, provide interpolation values via `grunt.option`, so `commit` could also be run as `grunt git:commit --message "Blah blah blah"` to achieve the same effect.
 
