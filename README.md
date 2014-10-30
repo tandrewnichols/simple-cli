@@ -69,11 +69,26 @@ grunt.initConfig({
         force: true // Do not fail the grunt task chain if this task fails
       }
     },
-    // As of v0.1.0
     commit: {
       options: {
         squash: 'some-branch', // long option with a value
         message: '{{ message }}' // Prompt for message at time of task run
+      }
+    },
+    branch: {
+      // Listen to stdout (or stderr or stdin) and do something with the result
+      options: {
+        // As an object
+        stdout: {
+          'event': 'data',
+          fn: function(data) {
+            console.log(data.toString()); // But obviously, do more than this
+          }
+        },
+        // As a function
+        stderr: function(data) {
+          console.log(data.toString()); // Ditto
+        }
       }
     }
   },
