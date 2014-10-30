@@ -85,6 +85,42 @@ describe 'spawn', ->
       And -> expect(@grunt.log.writeln).to.have.been.calledWith 'stdout'
       And -> expect(@grunt.log.writeln).to.have.been.calledWith 'stderr'
 
+    describe 'custom fd function', ->
+      Given -> @stdout = sinon.stub()
+      Given -> @emitter.stdout = new EventEmitter()
+      Given -> @emitter.stderr = new EventEmitter()
+      Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'A commit message'], { cwd: 'bar' }).returns @emitter
+      Given -> @context.target = 'commit'
+      Given -> @context.options.returns
+        message: 'A commit message'
+        cwd: 'bar'
+        stdout: @stdout
+      When ->
+        @subject.spawn @grunt, @context, 'git', @cb
+        @emitter.stdout.emit 'data', 'stdout'
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
+      And -> expect(@stdout).to.have.been.calledWith 'stdout'
+
+    describe 'custom fd function', ->
+      Given -> @stdout = sinon.stub()
+      Given -> @emitter.stdout = new EventEmitter()
+      Given -> @emitter.stderr = new EventEmitter()
+      Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'A commit message'], { cwd: 'bar' }).returns @emitter
+      Given -> @context.target = 'commit'
+      Given -> @context.options.returns
+        message: 'A commit message'
+        cwd: 'bar'
+        stdout:
+          event: 'banana'
+          fn: @stdout
+      When ->
+        @subject.spawn @grunt, @context, 'git', @cb
+        @emitter.stdout.emit 'banana', 'stdout'
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
+      And -> expect(@stdout).to.have.been.calledWith 'stdout'
+
     describe 'an error is thrown', ->
       describe 'force is true', ->
         Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'A commit message'], { stdio: 'inherit', cwd: 'bar' }).returns @emitter
