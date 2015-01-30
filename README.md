@@ -63,10 +63,12 @@ grunt.initConfig({
     diff: 'diff master', // short style
     pull: {
       options: {
-        // Additional, non-command specific, options
-        cwd: '../..', // cwd to pass to child_process.spawn
-        stdio: [null, process.stdout, null], // stdio to pass to child_process.spawn - use false to turn of stdio
-        force: true // Do not fail the grunt task chain if this task fails
+        // Additional options related to simple-cli go under "simple"
+        simple {
+          cwd: '../..', // cwd to pass to child_process.spawn
+          stdio: [null, process.stdout, null], // stdio to pass to child_process.spawn - use false to turn of stdio
+          force: true // Do not fail the grunt task chain if this task fails
+        }
       }
     },
     commit: {
@@ -79,15 +81,17 @@ grunt.initConfig({
       // Listen to stdout (or stderr or stdin) and do something with the result
       options: {
         // As an object
-        stdout: {
-          'event': 'data',
-          fn: function(data) {
-            console.log(data.toString()); // But obviously, do more than this
+        simple: {
+          stdout: {
+            'event': 'data',
+            fn: function(data) {
+              console.log(data.toString()); // But obviously, do more than this
+            }
+          },
+          // As a function
+          stderr: function(data) {
+            console.log(data.toString()); // Ditto
           }
-        },
-        // As a function
-        stderr: function(data) {
-          console.log(data.toString()); // Ditto
         }
       }
     }

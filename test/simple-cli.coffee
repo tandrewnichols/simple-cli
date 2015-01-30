@@ -74,8 +74,9 @@ describe 'spawn', ->
       Given -> @context.target = 'commit'
       Given -> @context.options.returns
         message: 'A commit message'
-        cwd: 'bar'
-        stdio: 'foo'
+        simple:
+          cwd: 'bar'
+          stdio: 'foo'
       When ->
         @subject.spawn @grunt, @context, 'git', @cb
         @emitter.stdout.emit 'data', 'stdout'
@@ -93,8 +94,9 @@ describe 'spawn', ->
       Given -> @context.target = 'commit'
       Given -> @context.options.returns
         message: 'A commit message'
-        cwd: 'bar'
-        stdout: @stdout
+        simple:
+          cwd: 'bar'
+          stdout: @stdout
       When ->
         @subject.spawn @grunt, @context, 'git', @cb
         @emitter.stdout.emit 'data', 'stdout'
@@ -110,10 +112,11 @@ describe 'spawn', ->
       Given -> @context.target = 'commit'
       Given -> @context.options.returns
         message: 'A commit message'
-        cwd: 'bar'
-        stdout:
-          event: 'banana'
-          fn: @stdout
+        simple:
+          cwd: 'bar'
+          stdout:
+            event: 'banana'
+            fn: @stdout
       When ->
         @subject.spawn @grunt, @context, 'git', @cb
         @emitter.stdout.emit 'banana', 'stdout'
@@ -127,8 +130,9 @@ describe 'spawn', ->
         Given -> @context.target = 'commit'
         Given -> @context.options.returns
           message: 'A commit message'
-          cwd: 'bar'
-          force: true
+          simple:
+            cwd: 'bar'
+            force: true
         When ->
           @subject.spawn @grunt, @context, 'git', @cb
           @emitter.emit 'close', 2
@@ -140,7 +144,8 @@ describe 'spawn', ->
         Given -> @context.target = 'commit'
         Given -> @context.options.returns
           message: 'A commit message'
-          cwd: 'bar'
+          simple:
+            cwd: 'bar'
         When ->
           @subject.spawn @grunt, @context, 'git', @cb
           @emitter.emit 'close', 2
@@ -151,8 +156,9 @@ describe 'spawn', ->
       Given -> @context.target = 'commit'
       Given -> @context.options.returns
         message: 'A commit message'
-        cwd: 'bar'
-        stdio: false
+        simple:
+          cwd: 'bar'
+          stdio: false
       When ->
         @subject.spawn @grunt, @context, 'git', @cb
         @emitter.emit 'close', 0
