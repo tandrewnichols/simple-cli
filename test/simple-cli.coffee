@@ -278,29 +278,117 @@ describe 'spawn', ->
         And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
         And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: { hello: 'world' }, cwd: 'foo'}))
 
-    context 'dryRun', ->
-      context 'no options', ->
-        Given -> @context.options.returns
-          simple:
-            dryRun: true
-        When ->
-          @subject.spawn @grunt, @context
-        Then -> expect(@cb).to.have.been.calledWith()
-        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
-        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: undefined, cwd: undefined}))
+      context 'with an onComplete callback', ->
+        context 'debug is an object', ->
+          context 'with no stderr', ->
+            Given -> @complete = sinon.stub()
+            Given -> @context.options.returns
+              simple:
+                onComplete: @complete
+                debug:
+                  stdout: 'foo'
+            When -> @subject.spawn @grunt, @context
+            Then -> expect(@complete).to.have.been.calledWith null, 'foo', @cb
 
-      context 'with options', ->
+          context 'with no keys', ->
+            Given -> @complete = sinon.stub()
+            Given -> @context.options.returns
+              simple:
+                onComplete: @complete
+                debug: {}
+            When -> @subject.spawn @grunt, @context
+            Then -> expect(@complete).to.have.been.calledWith null, '[DEBUG]: stdout', @cb
+
+          context 'with stderr', ->
+            Given -> @complete = sinon.stub()
+            Given -> @context.options.returns
+              simple:
+                onComplete: @complete
+                debug:
+                  stderr: 'foo'
+            When -> @subject.spawn @grunt, @context
+            And -> @error = @complete.getCall(0).args[0]
+            Then -> expect(@complete).to.have.been.calledWith sinon.match.instanceOf(Error), '[DEBUG]: stdout', @cb
+            And -> expect(@error.message).to.equal 'foo'
+            And -> expect(@error.code).to.equal 1
+
+        context 'debug is not an object', ->
+          Given -> @complete = sinon.stub()
+          Given -> @context.options.returns
+            simple:
+              onComplete: @complete
+              debug: true
+          When -> @subject.spawn @grunt, @context
+          And -> @error = @complete.getCall(0).args[0]
+          Then -> expect(@complete).to.have.been.calledWith sinon.match.instanceOf(Error), '[DEBUG]: stdout', @cb
+          And -> expect(@error.message).to.equal '[DEBUG]: stderr'
+          And -> expect(@error.code).to.equal 1
+
+    context 'custom options', ->
+      context 'no options provided by end-user', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
         Given -> @context.options.returns
-          simple:
-            dryRun: true
-            cwd: 'foo'
-            env:
-              hello: 'world'
+          simple: {}
+        Given -> @banana = sinon.stub()
         When ->
-          @subject.spawn @grunt, @context
-        Then -> expect(@cb).to.have.been.calledWith()
-        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
-        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: { hello: 'world' }, cwd: 'foo'}))
+          @subject.spawn @grunt, @context, { banana: @banana }
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+        And -> expect(@banana.called).to.be.false()
+
+      context 'custom option provided', ->
+        context 'everything is awesome', ->
+          Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+          Given -> @context.options.returns
+            simple:
+              banana: 'a yellow fruit'
+          Given -> @banana = sinon.stub()
+          Given -> @banana.callsArg(2)
+          When ->
+            @subject.spawn @grunt, @context, { banana: @banana }
+            @emitter.emit 'close', 0
+          Then -> expect(@cb).to.have.been.calledWith 0
+          And -> expect(@banana).to.have.been.calledWith 'a yellow fruit',
+            cmd: 'foo'
+            target: 'bar'
+            args: []
+            rawArgs: undefined
+            options: {}
+          , sinon.match.func
+
+        context 'an error', ->
+          Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+          Given -> @context.options.returns
+            simple:
+              banana: 'a yellow fruit'
+          Given -> @banana = sinon.stub()
+          Given -> @banana.callsArgWith(2, 'error')
+          When ->
+            @subject.spawn @grunt, @context, { banana: @banana }
+            @emitter.emit 'close', 0
+          Then -> expect(@banana).to.have.been.calledWith 'a yellow fruit',
+            cmd: 'foo'
+            target: 'bar'
+            args: []
+            rawArgs: undefined
+            options: {}
+          , sinon.match.func
+          And -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
+
+        context 'options modified', ->
+          Given -> @cp.spawn.withArgs('foo', ['blah', '--fooberry']).returns @emitter
+          Given -> @context.options.returns
+            foo: true
+            simple:
+              banana: 'a yellow fruit'
+          Given -> @banana = (val, context, next) ->
+            context.target = 'blah'
+            context.args[0] += 'berry'
+            next()
+          When ->
+            @subject.spawn @grunt, @context, { banana: @banana }
+            @emitter.emit 'close', 0
+          Then -> expect(@cb).to.have.been.calledWith 0
 
   describe 'with dynamics values', ->
     context 'passed via grunt.option', ->
