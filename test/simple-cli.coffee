@@ -1,4 +1,6 @@
 EventEmitter = require('events').EventEmitter
+chalk = require('chalk')
+util = require('util')
 
 describe 'spawn', ->
   Given -> @grunt =
@@ -8,6 +10,8 @@ describe 'spawn', ->
       fatal: sinon.stub()
     log:
       writeln: sinon.stub()
+    config:
+      get: sinon.stub()
   Given -> @context =
     name: 'foo'
     target: 'bar'
@@ -43,10 +47,11 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'long options', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', '--long', 'yep', '--long-multi', 'uhuh', '--boolean']).returns @emitter
+      Given -> @cp.spawn.withArgs('foo', ['bar', '--long', 'yah', '--long', 'sure', '--long-multi', 'uhuh', '--with-equal=check', '--boolean']).returns @emitter
       Given -> @context.options.returns
-        long: 'yep'
+        long: ['yah', 'sure']
         longMulti: 'uhuh'
+        'withEqual=': 'check'
         boolean: true
         simple: {}
       When ->
@@ -55,12 +60,12 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'short options', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', '-cd', '-a', 'b', '-e', 'f']).returns @emitter
+      Given -> @cp.spawn.withArgs('foo', ['bar', '-cd', '-a', 'b', '-e', 'f', '-e', 'g']).returns @emitter
       Given -> @context.options.returns
         a: 'b'
         c: true
         d: true
-        e: 'f'
+        e: ['f', 'g']
         simple: {}
       When ->
         @subject.spawn @grunt, @context
@@ -156,135 +161,168 @@ describe 'spawn', ->
         Then -> expect(@complete).to.have.been.calledWith sinon.match.instanceOf(Error), '', @cb
         And -> expect(@error.message).to.equal 'stderr'
         And -> expect(@error.code).to.equal 1
-    
-  #describe 'command with sub-commands', ->
-    #Given -> @cp.spawn.withArgs('git', ['remote', 'show', 'origin'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'remote'
-    #Given -> @context.data =
-      #cmd: 'remote show origin'
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
 
-  #describe 'command with sub-commands with the cmd at the front', ->
-    #Given -> @cp.spawn.withArgs('git', ['remote', 'show', 'origin'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'remote'
-    #Given -> @context.data =
-      #cmd: 'git remote show origin'
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+    context 'cmd', ->
+      context 'cmd is the same as the target', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            cmd: 'bar'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'command with a different name', ->
-    #Given -> @cp.spawn.withArgs('git', ['remote', 'show', 'origin'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'banana'
-    #Given -> @context.data =
-      #cmd: 'remote show origin'
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+      context 'cmd is the different from the target', ->
+        Given -> @cp.spawn.withArgs('foo', ['blah']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            cmd: 'blah'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'dasherizes commands and options', ->
-    #Given -> @cp.spawn.withArgs('git', ['rev-parse', '--use-dashes'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'revParse'
-    #Given -> @context.options.returns
-      #useDashes: true
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+    context 'args', ->
+      context 'no args', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @context.options.returns
+          simple: {}
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'allows raw args as string', ->
-    #Given -> @cp.spawn.withArgs('git', ['log', '--format=%s'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'log'
-    #Given -> @context.data =
-      #rawArgs: '--format=%s'
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+      context 'args is array', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            args: ['baz']
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'allows raw args as array', ->
-    #Given -> @cp.spawn.withArgs('git', ['log', '---blah^foo hi'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'log'
-    #Given -> @context.data =
-      #rawArgs: ['---blah^foo hi']
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+      context 'args is string', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar', 'baz', 'quux']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            args: 'baz quux'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'options have equal sign', ->
-    #Given -> @cp.spawn.withArgs('git', ['log', '--author=nichols'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'log'
-    #Given -> @context.options.returns
-      #'author=': 'nichols'
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+      context 'args with options', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar', 'baz', 'quux', '--hello', 'world']).returns @emitter
+        Given -> @context.options.returns
+          hello: 'world'
+          simple:
+            args: 'baz quux'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'task is the cmd', ->
-    #Given -> @cp.spawn.withArgs('git', ['remote', 'show', 'origin'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'remote'
-    #Given -> @context.data = 'remote show origin'
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+    context 'rawArgs', ->
+      Given -> @cp.spawn.withArgs('foo', ['bar', 'A commit message or other bizarre string']).returns @emitter
+      Given -> @context.options.returns
+        simple:
+          rawArgs: 'A commit message or other bizarre string'
+      When ->
+        @subject.spawn @grunt, @context
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'array-style short option', ->
-    #Given -> @cp.spawn.withArgs('git', ['commit', '-a', 'foo', '-a', 'bar'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'commit'
-    #Given -> @context.options.returns
-      #a: ['foo', 'bar']
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+    context 'task is a string', ->
+      Given -> @cp.spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
+      Given -> @context.data = 'bar baz'
+      Given -> @context.options.returns
+        simple: {}
+      When ->
+        @subject.spawn @grunt, @context
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'array-style long option', ->
-    #Given -> @cp.spawn.withArgs('git', ['commit', '--foo', 'bar', '--foo', 'baz'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-    #Given -> @context.target = 'commit'
-    #Given -> @context.options.returns
-      #foo: ['bar', 'baz']
-    #When ->
-      #@subject.spawn @grunt, @context, 'git', @cb
-      #@emitter.emit 'close', 0
-    #Then -> expect(@cb).to.have.been.called
+    context 'task is an array', ->
+      Given -> @cp.spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
+      Given -> @context.data = ['bar', 'baz']
+      Given -> @context.options.returns
+        simple: {}
+      When ->
+        @subject.spawn @grunt, @context
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
 
-  #describe 'with dynamics values', ->
-    #context 'passed via grunt.option', ->
-      #Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'Blah blah blah'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-      #Given -> @context.target = 'commit'
-      #Given -> @context.options.returns
-        #message: '{{ message }}'
-      #Given -> @grunt.option.withArgs('message').returns 'Blah blah blah'
-      #When ->
-        #@subject.spawn @grunt, @context, 'git', @cb
-        #@emitter.emit 'close', 0
-      #Then -> expect(@cb).to.have.been.called
+    context 'debug', ->
+      context 'no options', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            debug: true
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: undefined, cwd: undefined}))
 
-    #context 'passed via prompt', ->
-      #Given -> @cp.spawn.withArgs('git', ['commit', '--message', 'Blah blah blah'], { stdio: 'inherit', cwd: @cwd }).returns @emitter
-      #Given -> @context.target = 'commit'
-      #Given -> @context.options.returns
-        #message: '{{ message }}'
-      #Given -> @rl.question.withArgs('   message: ', sinon.match.func).callsArgWith(1, 'Blah blah blah')
-      #When ->
-        #@subject.spawn @grunt, @context, 'git', @cb
-        #@emitter.emit 'close', 0
-      #Then -> expect(@cb).to.have.been.called
-      #And -> expect(@rl.close).to.have.been.called
+      context 'with options', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            debug: true
+            cwd: 'foo'
+            env:
+              hello: 'world'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: { hello: 'world' }, cwd: 'foo'}))
 
-    #context 'an error occurs', ->
-      #Given -> @async.reduce = sinon.stub()
-      #Given -> @async.reduce.callsArgWith(3, 'error', {})
-      #Given -> @context.target = 'commit'
-      #Given -> @context.options.returns
-        #message: '{{ message }}'
-      #When -> @subject.spawn @grunt, @context, 'git', @cb
-      #Then -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
+  describe 'with dynamics values', ->
+    context 'passed via grunt.option', ->
+      Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
+      Given -> @context.options.returns
+        greeting: '{{ greeting }}'
+        simple: {}
+      Given -> @grunt.option.withArgs('greeting').returns 'Hello world'
+      When ->
+        @subject.spawn @grunt, @context
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
+
+    context 'passed via grunt.config', ->
+      Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
+      Given -> @context.options.returns
+        greeting: '{{ greeting }}'
+        simple: {}
+      Given -> @grunt.config.get.withArgs('greeting').returns 'Hello world'
+      When ->
+        @subject.spawn @grunt, @context
+        @emitter.emit 'close', 0
+      Then -> expect(@cb).to.have.been.calledWith 0
+
+    context 'passed via prompt', ->
+      context 'everything is awesome', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
+        Given -> @context.options.returns
+          greeting: '{{ greeting }}'
+          simple: {}
+        Given -> @rl.question.withArgs('   greeting: ', sinon.match.func).callsArgWith(1, 'Hello world')
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+        And -> expect(@rl.close).to.have.been.called
+
+      context 'an error occurs', ->
+        Given -> @async.reduce = sinon.stub()
+        Given -> @async.reduce.callsArgWith(3, 'error', {})
+        Given -> @context.options.returns
+          greeting: '{{ greeting }}'
+          simple: {}
+        When -> @subject.spawn @grunt, @context
+        Then -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
