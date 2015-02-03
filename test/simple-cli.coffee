@@ -282,6 +282,34 @@ describe 'spawn', ->
         And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
         And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: { hello: 'world' }, cwd: 'foo'}))
 
+    context 'dryRun', ->
+      context 'no options', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            dryRun: true
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: undefined, cwd: undefined}))
+
+      context 'with options', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            dryRun: true
+            cwd: 'foo'
+            env:
+              hello: 'world'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: { hello: 'world' }, cwd: 'foo'}))
+
   describe 'with dynamics values', ->
     context 'passed via grunt.option', ->
       Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
