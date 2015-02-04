@@ -4,7 +4,7 @@
 
 # simple-cli
 
-A simple wrapper for grunt implementations of command line APIs
+Gruntify command-line APIs with ease.
 
 ## Installation
 
@@ -17,118 +17,149 @@ npm install --save simple-cli
 This module is simple to use (hence the name). In your grunt task declaration, require this module and invoke it as follows:
 
 ```javascript
-var simpleCli = require('simple-cli');
+var cli = require('simple-cli');
 
 module.exports = function(grunt) {
-  // This is essentially the body of the "grunt-simple-git" plugin
+  // Or "npm" or "hg" or "bower" etc.
   grunt.registerMultiTask('git', 'A git wrapper', function() {
-    simpleCli.spawn(grunt, this, 'git', this.async() /* or some other callback */);
+    cli.spawn(grunt, this);
   });
 };
 ```
 
-This module allows any command on the wrapped cli to be invoked as a target with any options specified under options. Given the above setup:
+Yes, that is _all_ that is necessary to build a fully functioning git plugin for grunt.
 
-```javascript
+## Options on the wrapped CLI
+
+This module allows any command on the wrapped cli to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the CLI tool can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for CLI tools do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Here are the kinds of options that can be specified:
+
+#### Long options
+
+```js
 grunt.initConfig({
-  git: {
-    add: {
+  cli: {
+    target: {
       options: {
-        f: true, // short option as a flag
-        all: true // long option as a flag
+        foo: 'bar'
       }
-    },
-    log: {
-      options: {
-        n: 1, // short option with a value
-        'author=': 'anichols', // equal style option
-        nameOnly: true // long option as a flag - options are camelCased in the config
-      }
-    },
-    push: {
-      cmd: 'push origin master' // sub-commands (i.e. options that don't have "--" in front of them
-    },
-    show: {
-      rawArgs: '-- config/*.json', // raw args in any format - can also be an array
-      cmd: 'show HEAD'
-    },
-    // tasks can have arbitrary names, just use cmd to specify the actual command
-    travis: {
-      cmd: 'checkout travis'
-    },
-    // that lets you have more than one task that performs the same command
-    master: {
-      cmd: 'checkout master'
-    },
-    diff: 'diff master', // short style
-    pull: {
-      options: {
-        // Additional options related to simple-cli go under "simple"
-        simple {
-          cwd: '../..', // cwd to pass to child_process.spawn
-          stdio: [null, process.stdout, null], // stdio to pass to child_process.spawn - use false to turn of stdio
-          force: true // Do not fail the grunt task chain if this task fails
-        }
-      }
-    },
-    commit: {
-      options: {
-        squash: 'some-branch', // long option with a value
-        message: '{{ message }}' // Prompt for message at time of task run
-      }
-    },
-    branch: {
-      // Listen to stdout (or stderr or stdin) and do something with the result
-      options: {
-        // As an object
-        simple: {
-          stdout: {
-            'event': 'data',
-            fn: function(data) {
-              console.log(data.toString()); // But obviously, do more than this
-            }
-          },
-          // As a function
-          stderr: function(data) {
-            console.log(data.toString()); // Ditto
-          }
-        }
-      }
-    }
-  },
-  istanbul: {
-    instrument: {
-      options: {
-        x: ['**/node_modules/**', '**/bower_components/**'] // Pass multiple options
-      },
-      cmd: 'instrument app'
     }
   }
 });
 ```
 
-The following commands are run when these tasks are invoked:
+This will run `cli target --foo bar`
 
-`grunt git:add`: `git add -f --add`
+#### Multi-word options
 
-`grunt git:log`: `git log -n 1 --author=anichols --name-only`
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        fooBar: 'baz'
+      }
+    }
+  }
+});
+```
 
-`grunt git:push`: `git push origin master`
+This will run `cli target --foo-bar baz`
 
-`grunt git:show`: `git show HEAD -- config/*.json`
+#### Boolean options
 
-`grunt git:travis`: `git checkout travis`
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        foo: true
+      }
+    }
+  }
+});
+```
 
-`grunt git:master`: `git checkout master`
+This will run `cli target --foo`
 
-`grunt git:diff`: `git diff master`
+#### Short options
 
-`grunt git:pull`: `git pull` in `../../` directory with process.stdout as the child's stdout and ignoring failures
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        a: 'foo'
+      }
+    }
+  }
+});
+```
 
-`grunt git:commit`: `git commit --squash some-branch --message "<value entered at run time>"`
+This will run `cli target -a foo`
 
-`grunt istanbul:instrument`: `instanbul instrument app -x **/node_modules/** -x **/bower_components**`
+#### Short boolean options
 
-You can, alternatively, provide interpolation values via `grunt.option`, so `commit` could also be run as `grunt git:commit --message "Blah blah blah"` to achieve the same effect.
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        a: true
+      }
+    }
+  }
+});
+```
 
-See [grunt-simple-git](https://github.com/tandrewnichols/grunt-simple-git) and [grunt-simple-npm](https://github.com/tandrewnichols/grunt-simple-npm) for examples and more exhaustive documentation.
+This will run `cli target -a`
+
+#### Multiple short options grouped together
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        a: true,
+        b: true,
+        c: 'foo'
+      }
+    }
+  }
+});
+```
+
+This will run `cli target -ab -c foo`
+
+#### Options with equal signs
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        'author=': 'tandrewnichols'
+      }
+    }
+  }
+});
+```
+
+This will run `cli target --author=tandrewnichols`
+
+#### Arrays of options
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        a: ['foo', 'bar'],
+        greeting: ['hello', 'goodbye']
+      }
+    }
+  }
+});
+```
+
+This will run `cli target -a foo -a bar --greeting hello --greeting goodbye`
