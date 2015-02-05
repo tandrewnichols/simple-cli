@@ -324,6 +324,14 @@ describe 'spawn', ->
           And -> expect(@error.message).to.equal '[DEBUG]: stderr'
           And -> expect(@error.code).to.equal 1
 
+      context 'triggered via grunt.option', ->
+        Given -> @grunt.option.withArgs('debug').returns true
+        Given -> @context.options.returns
+          simple: {}
+        When -> @subject.spawn @grunt, @context
+        Then -> expect(@grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('foo bar')
+        And -> expect(@grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect({ env: undefined, cwd: undefined}))
+
     context 'custom options', ->
       context 'no options provided by end-user', ->
         Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
