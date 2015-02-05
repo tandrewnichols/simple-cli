@@ -410,6 +410,29 @@ describe 'spawn', ->
         @emitter.emit 'close', 0
       Then -> expect(@cb).to.have.been.calledWith 0
 
+    context 'passed via grunt.option in args', ->
+      context 'as array', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar', 'quux']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            args: ['{{ baz }}']
+        Given -> @grunt.option.withArgs('baz').returns 'quux'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+
+      context 'as string', ->
+        Given -> @cp.spawn.withArgs('foo', ['bar', 'quux', 'blah']).returns @emitter
+        Given -> @context.options.returns
+          simple:
+            args: '{{baz}} blah'
+        Given -> @grunt.option.withArgs('baz').returns 'quux'
+        When ->
+          @subject.spawn @grunt, @context
+          @emitter.emit 'close', 0
+        Then -> expect(@cb).to.have.been.calledWith 0
+
     context 'passed via grunt.config', ->
       Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
       Given -> @context.options.returns

@@ -14,7 +14,7 @@ npm install --save simple-cli
 
 ## Usage
 
-This module is simple to use (hence the name). In your grunt task declaration, require this module and invoke it as follows:
+This module is intended to be used with grunt to make writing plugin wrappers for command line tools easier to do. In your grunt task declaration, require this module and invoke it as follows:
 
 ```javascript
 var cli = require('simple-cli');
@@ -29,9 +29,9 @@ module.exports = function(grunt) {
 
 Yes, that is _all_ that is necessary to build a fully functioning git plugin for grunt.
 
-## Options on the wrapped CLI
+## Options on the executable
 
-This module allows any command on the wrapped cli to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the CLI tool can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for CLI tools do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Here are the kinds of options that can be specified:
+This module allows any command on the executable to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the executable can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for executables do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Here are the kinds of options that can be specified:
 
 #### Long options
 
@@ -339,3 +339,136 @@ grunt.initConfig({
 ```
 
 Additionally, you can pass the `--debug` option to grunt itself to enable the above behavior in an ad hoc manner.
+
+## Dynamic values
+
+Sometimes you just don't know what values you want to supply to an executable until you're ready to use it. That makes it hard to put into a task. `simple-cli` supports dynamical values (via interpolation) which can be supplied in any of three ways:
+
+#### via command line options to grunt (e.g. grunt.option)
+
+Supply the value when you call the task itself.
+
+```js
+grunt.initConfig({
+  git: {
+    push: {
+      options: {
+        simple: {
+          // You can also do this as a string, but note that simple-cli splits
+          // string args on space, so you wouldn't be able to put space INSIDE
+          // the interpolation. You'd have to say args: '{{remote}} master'
+          args: ['{{ remote }}', 'master']
+        }
+      }
+    }
+  }
+});
+```
+
+If the above was invoked with `grunt git:push --remote origin` the final command would be `git push origin master`.
+
+#### via grunt.config
+
+This is primarily useful if you want the result of another task to determine the value of an argument. For instance, maybe in another task you say `grunt.config.set('remote', 'heroku')`, then the task above would run `git push heroku master`.
+
+#### via prompt
+
+If `simple-cli` can't find an interpolation value via `grunt.option` or `grunt.config`, it will prompt you for one on the terminal. Thus you could do something like:
+
+```js
+grunt.initConfig({
+  git: {
+    commit: {
+      options: {
+        message: '{{ message }}'
+      }
+    }
+  }
+});
+```
+
+and automate commits, while still supplying an accurate commit message.
+
+## Invoking simple cli
+
+To setup the wrapper for an executable, invoke `require('simple-cli').spawn`. There are two required parameters, `grunt` and `this` (the context of the task). So the simplest invocation looks like:
+
+```js
+var cli = require('simple-cil');
+
+grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
+  cli.spawn(grunt, this);
+});
+```
+
+Additionally, however, you can pass the following parameters to customize the tool for your particular wrapper:
+
+#### options
+
+The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed under `options.simple` and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
+
+```js
+var cli = require('simple-cil');
+
+grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
+  cli.spawn(grunt, this, {
+    moreCowbell: function(val, config, cb) {
+      // I've got a fever...
+    }
+  });
+});
+```
+
+The handlers for custom opts are called immediately before the child process is spawned (so all the arguments have already been aggregated and put in the right form). The parameters passed to the handler are the value supplied by the user, an object containing all possible arguments for the child process, and a callback. The config object has the following keys:
+
+* cmd - The executable
+* target - The sub-command on the executable
+* args - Everything from `options.simple.args` first, followed by all the flags passed under options
+* rawArgs - Same as `options.simple.rawArgs`
+* options - The options passed to the child process (including `cwd` and `env`)
+
+#### cmd
+
+`simple-cli` assumes that the executable being wrapped is also the name of the grunt task. If, for some reason, this is not the case, you can pass the actual executable name to `spawn`:
+
+```js
+var cli = require('simple-cil');
+
+grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
+  // Invokes the executable "foobar" NOT "foo"
+  cli.spawn(grunt, this, 'foobar');
+});
+```
+
+#### callback
+
+`simple-cli` will use the grunt async callback as it's final callback, unless one is supplied. If you supply one, however, you must manage the async task yourself.
+
+```js
+var cli = require('simple-cil');
+
+grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
+  var done = this.async();
+  cli.spawn(grunt, this, function(){
+    // Do other stuff
+
+    // Call done so that grunt knows to run the next task
+    done();
+  });
+});
+```
+
+## Shortcut configurations
+
+For very simple tasks, you can define the task body as an array or string, rather than as an object, as all the above examples have been.
+
+```js
+grunt.initConfig({
+  git: {
+    // will invoke "git push origin master"
+    origin: ['push', 'origin', 'master'],
+
+    // will invoke "git pull upstream master"
+    upstream: 'pull upstream master'
+  }
+});
