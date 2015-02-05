@@ -163,3 +163,179 @@ grunt.initConfig({
 ```
 
 This will run `cli target -a foo -a bar --greeting hello --greeting goodbye`
+
+## Simple cli options
+
+Options about how simple cli itself behaves are placed under the `simple` key.
+
+#### env
+
+Supply additional environment variables to the child process.
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        simple: {
+          env: {
+            FOO: 'bar'
+          }
+        }
+      }
+    }
+  }
+});
+```
+
+#### cwd
+
+Set the current working directory for the child process.
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        simple: {
+          cwd: './test'
+        }
+      }
+    }
+  }
+});
+```
+
+#### force
+
+If the task fails, don't halt the entire task chain.
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        simple: {
+          force: true
+        }
+      }
+    }
+  }
+});
+```
+
+#### onComplete
+
+A callback to handle the stdout and stderr streams. `simple-cli` aggregates the stdout and stderr data output and will supply the final strings to the `onComplete` function. This function should have the signature `function(err, stdout, callback)` where `err` is an error object containing the stderr stream (if any errors were reported) and the code returned by the child process (as `err.code`), `stdout` is a string, and `callback` is a function. The callback must be called with a falsy value to complete the task (calling it with a truthy value - e.g. `1` - will fail the task).
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        simple: {
+          onComplete: function(err, stdout, callback) {
+            if (err) {
+              grunt.fail.fatal(err.message, err.code);
+            } else {
+              grunt.config.set('cli output', stdout);
+              callback();
+            }
+          });
+        }
+      }
+    }
+  }
+});
+```
+
+#### cmd
+
+An alternative sub-command to call on the cli. This is useful when you want to create multiple targets that call the same command with different options/parameters. If this value is present, it will be used instead of the grunt target as the first argument to the executable.
+
+```js
+grunt.initConfig({
+  // Using git as a real example
+  git: {
+    pushOrigin: {
+      options: {
+        simple: {
+          cmd: 'push',
+          args: ['origin', 'master']
+        }
+      }
+    },
+    pushHeroku: {
+      options: {
+        simple: {
+          cmd: 'push',
+          args: 'heroku master'
+        }
+      }
+    }
+  }
+});
+```
+
+Running `grunt git:pushOrigin` will run `git push origin master` and running `grunt git:pushHeroku` will run `git push heroku master`.
+
+#### args
+
+Additional, non-flag arguments to pass to the executable. These can be passed as an array (as in `git:pushOrigin` above) or as a single string with arguments separated by a space (as in `git:pushHeroku` above).
+
+#### rawArgs
+
+`rawArgs` is a catch all for any arguments to the executable that can't be handled (for whatever reason) with the options above (e.g. the path arguments in some git commands: `git checkout master -- config/production.json`). Anything in `rawArgs` will be concatenated to the end of all the normal args.
+
+```js
+grunt.initConfig({
+  git: {
+    checkout: {
+      options: {
+        simple: {
+          args: ['master'],
+          rawArgs: '-- config/production.json'
+        }
+      }
+    }
+  }
+});
+```
+
+#### debug
+
+Similar to `--dry-run` in many executables. This will log the command that will be spawned in a child process without actually spawning it. Additionally, if you have an onComplete handler, fake stderr and stdout will be passed to this handler, simulating the real task. If you want to use specific stderr/stdout messages, `debug` can also be an object with `stderr` and `stdout` properties that will be passed to the onComplete handler.
+
+```js
+grunt.initConfig({
+  cli: {
+    target: {
+      options: {
+        simple: {
+          // Invoked with default fake stderr/stdout
+          onComplete: function(err, stdout, callback) {
+            console.log(arguments);
+          },
+          debug: true
+        }
+      }
+    },
+    target2: {
+      options: {
+        simple: {
+          // Invoked with 'foo' and 'bar'
+          onComplete: function(err, stdout, callback) {
+            console.log(arguments);
+          },
+          debug: {
+            stderr: 'foo',
+            stdout: 'bar'
+          }
+        }
+      }
+    }
+  }
+});
+```
+
+Additionally, you can pass the `--debug` option to grunt itself to enable the above behavior in an ad hoc manner.
