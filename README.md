@@ -29,16 +29,32 @@ module.exports = function(grunt) {
 
 Yes, that is _all_ that is necessary to build a fully functioning git plugin for grunt.
 
+This module allows any command on the executable to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the executable can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for executables do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Below are the kinds of options that can be specified.
+
 ## Options on the executable
 
-This module allows any command on the executable to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the executable can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for executables do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Here are the kinds of options that can be specified:
+Let's write a wrapper for the super-awesome (and totally made up) `blerg` executable. First, we write the wrapper and publish it as `grunt-blerg`:
+
+```javascript
+var cli = require('simple-cli');
+
+module.exports = function(grunt) {
+  grunt.registerMultiTask('blerg', 'A wrapper for blerg-cli', function() {
+    cli.spawn(grunt, this);
+  });
+};
+```
+
+Done. Now we can blerg on the command line via grunt! Let's see how an end-user would consume our new library.
 
 #### Long options
 
+You can specify any long option under options with a corresponding value.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    shazzam: {
       options: {
         foo: 'bar'
       }
@@ -47,14 +63,16 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target --foo bar`
+This will run `blerg shazzam --foo bar`.
 
 #### Multi-word options
 
+Multi-word options work too.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    awesome: {
       options: {
         fooBar: 'baz'
       }
@@ -63,30 +81,34 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target --foo-bar baz`
+This will run `blerg awesome --foo-bar baz`. Note the camel-casing for options with hyphens.
 
 #### Boolean options
 
+But not all options have values. `blerg`, for example, has that super-user `--banana` option.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    jazzhands: {
       options: {
-        foo: true
+        banana: true
       }
     }
   }
 });
 ```
 
-This will run `cli target --foo`
+This will run `blerg jazzhands --banana`.
 
 #### Short options
 
+You can also use short options.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    wasabi: {
       options: {
         a: 'foo'
       }
@@ -95,14 +117,16 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target -a foo`
+This will run `blerg wasabi -a foo`.
 
 #### Short boolean options
 
+And short options as booleans.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    hashbang: {
       options: {
         a: true
       }
@@ -111,14 +135,16 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target -a`
+This will run `blerg hashbang -a`.
 
 #### Multiple short options grouped together
 
+Yep, this works too. Because that's how a developer would do it.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    blaff: {
       options: {
         a: true,
         b: true,
@@ -129,44 +155,48 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target -ab -c foo`
+This will run `blerg blaff -ab -c foo`.
 
 #### Options with equal signs
 
+Hmm, some libraries have weird "=" syntax options. Like git. And blerg.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    nafblat: {
       options: {
-        'author=': 'tandrewnichols'
+        'bloogs=': 'meep'
       }
     }
   }
 });
 ```
 
-This will run `cli target --author=tandrewnichols`
+This will run `blerg nafblat --bloogs=meep`.
 
 #### Arrays of options
 
+You can also specify the same option more than once by passing an array.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    murica: {
       options: {
         a: ['foo', 'bar'],
-        greeting: ['hello', 'goodbye']
+        fruit: ['banana', 'kiwi']
       }
     }
   }
 });
 ```
 
-This will run `cli target -a foo -a bar --greeting hello --greeting goodbye`
+This will run `blerg murica -a foo -a bar --fruit banana --fruit kiwi`.
 
 ## Simple cli options
 
-Options about how simple cli itself behaves are placed under the `simple` key.
+There are also some library specific options. Options about how simple cli itself behaves are placed under the `simple` key.
 
 #### env
 
@@ -174,8 +204,8 @@ Supply additional environment variables to the child process.
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    hoodoo: {
       options: {
         simple: {
           env: {
@@ -188,14 +218,16 @@ grunt.initConfig({
 });
 ```
 
+Like running `FOO=bar blerg hoodoo`.
+
 #### cwd
 
 Set the current working directory for the child process.
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    jackwagon: {
       options: {
         simple: {
           cwd: './test'
@@ -206,14 +238,16 @@ grunt.initConfig({
 });
 ```
 
+Runs `blerg jackwagon`, but in the `./test` directory.
+
 #### force
 
-If the task fails, don't halt the entire task chain.
+If the task fails, don't halt the entire task chain. Note that this is different that grunt's own `force` option. Really all this does is consume any error thrown . . . and simply ignore it.
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    muncher: {
       options: {
         simple: {
           force: true
@@ -230,15 +264,15 @@ A callback to handle the stdout and stderr streams. `simple-cli` aggregates the 
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    portmanteau: {
       options: {
         simple: {
           onComplete: function(err, stdout, callback) {
             if (err) {
               grunt.fail.fatal(err.message, err.code);
             } else {
-              grunt.config.set('cli output', stdout);
+              grunt.config.set('portmanteau', stdout);
               callback();
             }
           });
@@ -308,24 +342,25 @@ Similar to `--dry-run` in many executables. This will log the command that will 
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    'waffle-iron': {
       options: {
         simple: {
           // Invoked with default fake stderr/stdout
           onComplete: function(err, stdout, callback) {
-            console.log(arguments);
+            console.log(err.message, stdout);
+            callback();
           },
           debug: true
         }
       }
     },
-    target2: {
+    'wilty-salad': {
       options: {
         simple: {
-          // Invoked with 'foo' and 'bar'
           onComplete: function(err, stdout, callback) {
-            console.log(arguments);
+            console.log(err.message, stdout); // Logs 'foo bar'
+            callback();
           },
           debug: {
             stderr: 'foo',
@@ -338,7 +373,7 @@ grunt.initConfig({
 });
 ```
 
-Additionally, you can pass the `--debug` option to grunt itself to enable the above behavior in an ad hoc manner.
+Additionally, you can pass the `--debug` option to grunt itself to enable the above behavior in an ad hoc manner (e.g. `grunt blerg:wilty-salad --debug`).
 
 ## Dynamic values
 

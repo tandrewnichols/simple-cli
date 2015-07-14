@@ -21,8 +21,7 @@ describe 'spawn', ->
   Given -> @cb = sinon.stub()
   Given -> @context.async.returns @cb
   Given -> @context.options.returns { simple: {} }
-  Given -> @cp =
-    spawn: sinon.stub()
+  Given -> @spawn = sinon.stub()
   Given -> @readline =
     createInterface: sinon.stub()
     '@global': true
@@ -34,20 +33,20 @@ describe 'spawn', ->
     '@global': true
   Given -> @emitter = new EventEmitter()
   Given -> @subject = sandbox '../lib',
-    child_process: @cp
+    'win-spawn': @spawn
     readline: @readline
     async: @async
 
   describe 'wrapped cli options', ->
     context 'no options', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
       When ->
         @subject.spawn @grunt, @context
         @emitter.emit 'close', 0
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'long options', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', '--long', 'yah', '--long', 'sure', '--long-multi', 'uhuh', '--with-equal=check', '--boolean']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', '--long', 'yah', '--long', 'sure', '--long-multi', 'uhuh', '--with-equal=check', '--boolean']).returns @emitter
       Given -> @context.options.returns
         long: ['yah', 'sure']
         longMulti: 'uhuh'
@@ -60,7 +59,7 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'short options', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', '-cd', '-a', 'b', '-e', 'f', '-e', 'g']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', '-cd', '-a', 'b', '-e', 'f', '-e', 'g']).returns @emitter
       Given -> @context.options.returns
         a: 'b'
         c: true
@@ -74,7 +73,7 @@ describe 'spawn', ->
 
   describe 'simple cli invoked differently', ->
     context 'with an alternate cmd', ->
-      Given -> @cp.spawn.withArgs('baz', ['bar']).returns @emitter
+      Given -> @spawn.withArgs('baz', ['bar']).returns @emitter
       When ->
         @subject.spawn @grunt, @context, 'baz'
         @emitter.emit 'close', 0
@@ -82,7 +81,7 @@ describe 'spawn', ->
 
     context 'with a different callback', ->
       Given -> @altCb = sinon.stub()
-      Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
       When ->
         @subject.spawn @grunt, @context, @altCb
         @emitter.emit 'close', 0
@@ -90,7 +89,7 @@ describe 'spawn', ->
 
     context 'with a different cmd and callback', ->
       Given -> @altCb = sinon.stub()
-      Given -> @cp.spawn.withArgs('baz', ['bar']).returns @emitter
+      Given -> @spawn.withArgs('baz', ['bar']).returns @emitter
       When ->
         @subject.spawn @grunt, @context, 'baz', @altCb
         @emitter.emit 'close', 0
@@ -98,7 +97,7 @@ describe 'spawn', ->
       
   describe 'simple cli opts', ->
     context 'env', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar'], { env: { foo: 'bar' } }).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar'], { env: { foo: 'bar' } }).returns @emitter
       Given -> @env = process.env
       Given -> process.env = {}
       afterEach -> process.env = @env
@@ -112,7 +111,7 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'cwd', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar'], { cwd: 'blah' }).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar'], { cwd: 'blah' }).returns @emitter
       Given -> @context.options.returns
         simple:
           cwd: 'blah'
@@ -122,7 +121,7 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'force', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
       Given -> @context.options.returns
         simple:
           force: true
@@ -136,7 +135,7 @@ describe 'spawn', ->
       Given -> @emitter.stdout = new EventEmitter()
       Given -> @emitter.stderr = new EventEmitter()
       context 'success', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
         Given -> @complete = sinon.stub()
         Given -> @context.options.returns
           simple:
@@ -148,7 +147,7 @@ describe 'spawn', ->
         Then -> expect(@complete).to.have.been.calledWith null, 'stdout', @cb
 
       context 'failure', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
         Given -> @complete = sinon.stub()
         Given -> @context.options.returns
           simple:
@@ -164,7 +163,7 @@ describe 'spawn', ->
 
     context 'cmd', ->
       context 'cmd is the same as the target', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
         Given -> @context.options.returns
           simple:
             cmd: 'bar'
@@ -174,7 +173,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
       context 'cmd is the different from the target', ->
-        Given -> @cp.spawn.withArgs('foo', ['blah']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['blah']).returns @emitter
         Given -> @context.options.returns
           simple:
             cmd: 'blah'
@@ -185,7 +184,7 @@ describe 'spawn', ->
 
     context 'args', ->
       context 'no args', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
         Given -> @context.options.returns
           simple: {}
         When ->
@@ -194,7 +193,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
       context 'args is array', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
         Given -> @context.options.returns
           simple:
             args: ['baz']
@@ -204,7 +203,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
       context 'args is string', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar', 'baz', 'quux']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar', 'baz', 'quux']).returns @emitter
         Given -> @context.options.returns
           simple:
             args: 'baz quux'
@@ -214,7 +213,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
       context 'args with options', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar', 'baz', 'quux', '--hello', 'world']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar', 'baz', 'quux', '--hello', 'world']).returns @emitter
         Given -> @context.options.returns
           hello: 'world'
           simple:
@@ -225,7 +224,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'rawArgs', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', 'A commit message or other bizarre string']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', 'A commit message or other bizarre string']).returns @emitter
       Given -> @context.options.returns
         simple:
           rawArgs: 'A commit message or other bizarre string'
@@ -235,7 +234,7 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'task is a string', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
       Given -> @context.data = 'bar baz'
       Given -> @context.options.returns
         simple: {}
@@ -245,7 +244,7 @@ describe 'spawn', ->
       Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'task is an array', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', 'baz']).returns @emitter
       Given -> @context.data = ['bar', 'baz']
       Given -> @context.options.returns
         simple: {}
@@ -334,7 +333,7 @@ describe 'spawn', ->
 
     context 'custom options', ->
       context 'no options provided by end-user', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
         Given -> @context.options.returns
           simple: {}
         Given -> @banana = sinon.stub()
@@ -346,7 +345,7 @@ describe 'spawn', ->
 
       context 'custom option provided', ->
         context 'everything is awesome', ->
-          Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+          Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
           Given -> @context.options.returns
             simple:
               banana: 'a yellow fruit'
@@ -365,7 +364,7 @@ describe 'spawn', ->
           , sinon.match.func
 
         context 'an error', ->
-          Given -> @cp.spawn.withArgs('foo', ['bar']).returns @emitter
+          Given -> @spawn.withArgs('foo', ['bar']).returns @emitter
           Given -> @context.options.returns
             simple:
               banana: 'a yellow fruit'
@@ -384,7 +383,7 @@ describe 'spawn', ->
           And -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
 
         context 'options modified', ->
-          Given -> @cp.spawn.withArgs('foo', ['blah', '--fooberry']).returns @emitter
+          Given -> @spawn.withArgs('foo', ['blah', '--fooberry']).returns @emitter
           Given -> @context.options.returns
             foo: true
             simple:
@@ -400,7 +399,7 @@ describe 'spawn', ->
 
   describe 'with dynamics values', ->
     context 'passed via grunt.option', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
       Given -> @context.options.returns
         greeting: '{{ greeting }}'
         simple: {}
@@ -412,7 +411,7 @@ describe 'spawn', ->
 
     context 'passed via grunt.option in args', ->
       context 'as array', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar', 'quux']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar', 'quux']).returns @emitter
         Given -> @context.options.returns
           simple:
             args: ['{{ baz }}']
@@ -423,7 +422,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
       context 'as string', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar', 'quux', 'blah']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar', 'quux', 'blah']).returns @emitter
         Given -> @context.options.returns
           simple:
             args: '{{baz}} blah'
@@ -434,7 +433,7 @@ describe 'spawn', ->
         Then -> expect(@cb).to.have.been.calledWith 0
 
     context 'passed via grunt.config', ->
-      Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
+      Given -> @spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
       Given -> @context.options.returns
         greeting: '{{ greeting }}'
         simple: {}
@@ -446,7 +445,7 @@ describe 'spawn', ->
 
     context 'passed via prompt', ->
       context 'everything is awesome', ->
-        Given -> @cp.spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
+        Given -> @spawn.withArgs('foo', ['bar', '--greeting', 'Hello world']).returns @emitter
         Given -> @context.options.returns
           greeting: '{{ greeting }}'
           simple: {}
