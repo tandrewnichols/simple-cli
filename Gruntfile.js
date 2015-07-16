@@ -1,5 +1,6 @@
 module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-mocha-cov');
   grunt.loadNpmTasks('grunt-travis-matrix');
@@ -58,6 +59,15 @@ module.exports = function(grunt) {
     },
     matrix: {
       'v0.10': 'codeclimate < coverage/coverage.lcov'
+    },
+    watch: {
+      tests: {
+        files: ['lib/**/*.js', 'test/**/*.coffee'],
+        tasks: ['mocha'],
+        options: {
+          atBegin: true
+        }
+      }
     }
   });
 
