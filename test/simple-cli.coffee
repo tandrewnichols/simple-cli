@@ -1,91 +1,89 @@
-_cmd = null
-_done = null
-_context = null
-_grunt = null
-_customOpts = null
-
 describe 'simple cli', ->
-  Given -> @Builder = class Builder
-    constructor: (@cmd, @done, @context, @grunt, @customOpts) ->
-      _cmd = @cmd
-      _done = @done
-      _context = @context
-      _grunt = @grunt
-      _customOpts = @customOpts
-    configure: -> return this
-    buildOptions: -> return this
-    getDynamicValues: (cb) -> cb()
-    spawn: sinon.stub()
-
-  Given -> sinon.spy @Builder.prototype, 'configure'
-  Given -> sinon.spy @Builder.prototype, 'buildOptions'
-  Given -> sinon.spy @Builder.prototype, 'getDynamicValues'
+  Given -> @Builder = sinon.stub()
+  Given -> @Builder.returns
+  Given -> @builder = spyObj 'configure', 'buildOptions', 'getDynamicValues', 'spawn', 'handleCustomOptions', 'debug'
+  Given -> @builder.configure.returns @builder
+  Given -> @builder.buildOptions.returns @builder
+  Given -> @Builder.returns @builder
+  Given -> @builder.getDynamicValues.callsArg(0)
 
   Given -> @cli = sandbox '../lib/simple-cli',
-    async: {}
     './builder': @Builder
 
   describe 'returns a function', ->
     Then -> expect(@cli.spawn('name', 'description')).to.be.a('function')
 
   describe 'sets up a grunt multitask', ->
-    Given -> @func = @cli.spawn('name', 'description')
+    Given -> @func = @cli.spawn
+      task: 'task'
+      description: 'description'
     Given -> @grunt =
       registerMultiTask: sinon.stub()
       fail:
         fatal: sinon.stub()
     When -> @func @grunt
-    Then -> expect(@grunt.registerMultiTask).to.have.been.calledWith 'name', 'description', sinon.match.func
+    Then -> expect(@grunt.registerMultiTask).to.have.been.calledWith 'task', 'description', sinon.match.func
     
   describe 'configures a task', ->
     Given -> @grunt =
       registerMultiTask: sinon.stub()
+      fail:
+        fatal: sinon.stub()
     Given -> @cb = sinon.stub()
 
-    context 'where the task name is the binary name', ->
-      Given -> @opts = {}
-      Given -> @cli.spawn('taskname', 'description', @opts, @cb)(@grunt)
+    context 'everything is awesome', ->
+      Given -> @options =
+        task: 'task'
+        description: 'description'
+        options:
+          foo: 'bar'
+        callback: @cb
+      Given -> @cli.spawn(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
+      Given -> @builder.handleCustomOptions.callsArg 1
       When -> @task.apply(@context)
-      Then -> expect(@Builder.prototype.configure).to.have.been.called
-      And -> expect(@Builder.prototype.buildOptions).to.have.been.called
-      And -> expect(@Builder.prototype.getDynamicValues).to.have.been.calledWith sinon.match.func
-      And -> expect(@Builder.prototype.spawn).to.have.been.called
-      And -> expect(_cmd).to.equal 'taskname'
-      And -> expect(_done).to.equal @cb
-      And -> expect(_context).to.equal @context
-      And -> expect(_grunt).to.equal @grunt
-      And -> expect(_customOpts).to.equal @opts
+      Then -> expect(@Builder).to.have.been.calledWith @options, @context, @grunt
+      And -> expect(@builder.buildOptions).to.have.been.called
+      And -> expect(@builder.getDynamicValues).to.have.been.calledWith sinon.match.func
+      And -> expect(@builder.handleCustomOptions).to.have.been.calledWith 'foo', sinon.match.func
+      And -> expect(@builder.spawn).to.have.been.called
 
-    context 'where the binary name is different from the task name', ->
-      Given -> @opts = {}
-      Given -> @cli.spawn('taskname', 'description', @opts, 'binary', @cb)(@grunt)
+    context 'async throws error', ->
+      Given -> @options =
+        task: 'task'
+        description: 'description'
+        options:
+          foo: 'bar'
+        callback: @cb
+      Given -> @cli.spawn(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
+      Given -> @builder.handleCustomOptions.callsArgWith 1, 'error'
       When -> @task.apply(@context)
-      Then -> expect(@Builder.prototype.configure).to.have.been.called
-      And -> expect(@Builder.prototype.buildOptions).to.have.been.called
-      And -> expect(@Builder.prototype.getDynamicValues).to.have.been.calledWith sinon.match.func
-      And -> expect(@Builder.prototype.spawn).to.have.been.called
-      And -> expect(_cmd).to.equal 'binary'
-      And -> expect(_done).to.equal @cb
-      And -> expect(_context).to.equal @context
-      And -> expect(_grunt).to.equal @grunt
-      And -> expect(_customOpts).to.equal @opts
+      Then -> expect(@Builder).to.have.been.calledWith @options, @context, @grunt
+      And -> expect(@builder.buildOptions).to.have.been.called
+      And -> expect(@builder.getDynamicValues).to.have.been.calledWith sinon.match.func
+      And -> expect(@builder.handleCustomOptions).to.have.been.calledWith 'foo', sinon.match.func
+      And -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
+      And -> expect(@builder.spawn.called).to.be.false()
 
-    context 'where getDynamicValues throws an error', ->
-      Given -> @opts = {}
-      Given -> @cli.spawn('taskname', 'description', @opts, 'binary', @cb)(@grunt)
+    context 'debug', ->
+      Given -> @options =
+        task: 'task'
+        description: 'description'
+        options:
+          foo: 'bar'
+        callback: @cb
+      Given -> @builder.debugOn = true
+      Given -> @cli.spawn(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
+      Given -> @builder.handleCustomOptions.callsArgWith 1
       When -> @task.apply(@context)
-      Then -> expect(@Builder.prototype.configure).to.have.been.called
-      And -> expect(@Builder.prototype.buildOptions).to.have.been.called
-      And -> expect(@Builder.prototype.getDynamicValues).to.have.been.calledWith sinon.match.func
-      And -> expect(@Builder.prototype.spawn).to.have.been.called
-      And -> expect(_cmd).to.equal 'binary'
-      And -> expect(_done).to.equal @cb
-      And -> expect(_context).to.equal @context
-      And -> expect(_grunt).to.equal @grunt
-      And -> expect(_customOpts).to.equal @opts
+      Then -> expect(@Builder).to.have.been.calledWith @options, @context, @grunt
+      And -> expect(@builder.buildOptions).to.have.been.called
+      And -> expect(@builder.getDynamicValues).to.have.been.calledWith sinon.match.func
+      And -> expect(@builder.handleCustomOptions).to.have.been.calledWith 'foo', sinon.match.func
+      And -> expect(@builder.debug).to.have.been.called
+      And -> expect(@builder.spawn.called).to.be.false()
