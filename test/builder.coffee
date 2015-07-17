@@ -27,8 +27,11 @@ describe 'builder', ->
     Given -> @context.async.returns 'async'
 
     context 'options.cmd', ->
+      Given -> console.log process.env
       Given -> @env = process.env
+      Given -> console.log @env
       Given -> @env.HELLO = 'world'
+      Given -> console.log @env
       When -> @builder = new @Builder @options, @context, @grunt
       Then -> expect(@builder.cmd).to.equal 'cmd'
       And -> expect(@builder.done).to.equal 'foo'
@@ -42,6 +45,7 @@ describe 'builder', ->
       And -> expect(@builder.grunt).to.equal @grunt
       And -> expect(@builder.customOptions).to.equal 'options'
       And -> expect(@builder.env).to.deep.equal @env
+      And -> console.log(@builder.env)
 
     context 'options.task', ->
       Given -> delete @options.cmd
