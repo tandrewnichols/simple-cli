@@ -4,6 +4,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-mocha-cov');
   grunt.loadNpmTasks('grunt-travis-matrix');
+  grunt.loadNpmTasks('grunt-codeclimate-reporter');
 
   grunt.initConfig({
     jshint: {
@@ -26,7 +27,7 @@ module.exports = function(grunt) {
           require: 'coffee-script/register',
           output: 'coverage/coverage.lcov'
         },
-        src: ['test/helpers.coffee', 'test/**/*.coffee', '!test/acceptance.coffee'],
+        src: ['test/helpers.coffee', 'test/**/*.coffee'],
       },
       html: {
         options: {
@@ -35,7 +36,7 @@ module.exports = function(grunt) {
           require: 'coffee-script/register',
           output: 'coverage/coverage.html'
         },
-        src: ['test/helpers.coffee', 'test/**/*.coffee', '!test/acceptance.coffee']
+        src: ['test/helpers.coffee', 'test/**/*.coffee']
       }
     },
     mochaTest: {
@@ -48,17 +49,20 @@ module.exports = function(grunt) {
         src: ['test/helpers.coffee', 'test/**/*.coffee']
       }
     },
+    codeclimate: {
+      options: {
+        file: 'coverage/coverage.lcov',
+        token: '897166616c6cd6f7cebd180f6ef89c02b1a3f483ba91690159bde9534af7fc19'
+      }
+    },
     travis: {
       options: {
         targets: {
           test: '{{ version }}',
-          when: 'v0.10',
-          tasks: ['mochacov:lcov', 'matrix:v0.10']
+          when: 'v0.12',
+          tasks: ['mochacov:lcov', 'codeclimate']
         }
       }
-    },
-    matrix: {
-      'v0.10': 'codeclimate < coverage/coverage.lcov'
     },
     watch: {
       tests: {
