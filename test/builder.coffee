@@ -1,5 +1,3 @@
-diff = require 'deep-diff'
-
 describe 'builder', ->
   Given -> @async = {}
   Given -> @readline =
@@ -31,7 +29,11 @@ describe 'builder', ->
     context 'options.cmd', ->
       Given -> @env = process.env
       Given -> @env.HELLO = 'world'
+      # For some reason, asserting that @builder.env is deep equal to @env fails,
+      # but ONLY on iojs. Stringifying and parsing both makes it pass. Alas.
+      Given -> @env = JSON.parse(JSON.stringify(@env))
       When -> @builder = new @Builder @options, @context, @grunt
+      And -> @builderEnv = JSON.parse(JSON.stringify(@builder.env))
       Then -> expect(@builder.cmd).to.equal 'cmd'
       And -> expect(@builder.done).to.equal 'foo'
       And -> expect(@builder.options).to.deep.equal foo: 'bar'
@@ -43,9 +45,7 @@ describe 'builder', ->
       And -> expect(@builder.context).to.equal @context
       And -> expect(@builder.grunt).to.equal @grunt
       And -> expect(@builder.customOptions).to.equal 'options'
-      And ->
-        console.log(diff(@builder.env, @env))
-        expect(@builder.env).to.deep.equal @env
+      And -> expect(@builderEnv).to.deep.equal @env
 
     context 'options.task', ->
       Given -> delete @options.cmd
