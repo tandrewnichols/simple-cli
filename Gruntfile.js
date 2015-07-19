@@ -41,7 +41,7 @@ module.exports = function(grunt) {
       }
     },
     matrix: {
-      'v0.12': 'codeclimate-test-reporter < coverage/coverage.lcov'
+      'v0.12': 'codeclimate-test-reporter < coverage/lcov.info'
     },
     watch: {
       tests: {
