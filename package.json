@@ -53,12 +53,5 @@
     "underscore.string": "^3.0.2",
     "varity": "^1.0.3",
     "win-spawn": "^2.0.0"
-  },
-  "config": {
-    "blanket": {
-      "pattern": [
-        "simple-cli/lib"
-      ]
-    }
   }
 }
