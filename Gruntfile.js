@@ -1,12 +1,15 @@
 module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-mocha-test');
-  grunt.loadNpmTasks('grunt-mocha-cov');
   grunt.loadNpmTasks('grunt-travis-matrix');
-  grunt.loadNpmTasks('grunt-codeclimate-reporter');
+  grunt.loadNpmTasks('grunt-simple-istanbul');
 
   grunt.initConfig({
+    clean: {
+      coverage: 'coverage'
+    },
     jshint: {
       options: {
         reporter: require('jshint-stylish'),
@@ -18,27 +21,6 @@ module.exports = function(grunt) {
       },
       all: ['lib/*.js']
     },
-    mochacov: {
-      lcov: {
-        options: {
-          reporter: 'mocha-lcov-reporter',
-          instrument: true,
-          ui: 'mocha-given',
-          require: 'coffee-script/register',
-          output: 'coverage/coverage.lcov'
-        },
-        src: ['test/helpers.coffee', 'test/**/*.coffee'],
-      },
-      html: {
-        options: {
-          reporter: 'html-cov',
-          ui: 'mocha-given',
-          require: 'coffee-script/register',
-          output: 'coverage/coverage.html'
-        },
-        src: ['test/helpers.coffee', 'test/**/*.coffee']
-      }
-    },
     mochaTest: {
       options: {
         reporter: 'spec',
@@ -49,20 +31,17 @@ module.exports = function(grunt) {
         src: ['test/helpers.coffee', 'test/**/*.coffee']
       }
     },
-    codeclimate: {
-      options: {
-        file: 'coverage/coverage.lcov',
-        token: '897166616c6cd6f7cebd180f6ef89c02b1a3f483ba91690159bde9534af7fc19'
-      }
-    },
     travis: {
       options: {
         targets: {
           test: '{{ version }}',
           when: 'v0.12',
-          tasks: ['mochacov:lcov', 'codeclimate']
+          tasks: ['istanbul', 'matrix:v0.12']
         }
       }
+    },
+    matrix: {
+      'v0.12': 'codeclimate-test-reporter < coverage/coverage.lcov'
     },
     watch: {
       tests: {
@@ -72,11 +51,20 @@ module.exports = function(grunt) {
           atBegin: true
         }
       }
+    },
+    istanbul: {
+      unit: {
+        options: {
+          root: 'lib',
+          dir: 'coverage'
+        },
+        cmd: 'cover grunt mocha'
+      },
     }
   });
 
   grunt.registerTask('mocha', ['mochaTest:test']);
   grunt.registerTask('default', ['jshint:all', 'mocha']);
-  grunt.registerTask('coverage', ['mochacov:html']);
+  grunt.registerTask('coverage', ['istanbul']);
   grunt.registerTask('ci', ['jshint:all', 'mocha', 'travis']);
 };
