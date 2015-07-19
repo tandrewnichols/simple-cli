@@ -41,7 +41,10 @@ describe 'builder', ->
       And -> expect(@builder.context).to.equal @context
       And -> expect(@builder.grunt).to.equal @grunt
       And -> expect(@builder.customOptions).to.equal 'options'
-      And -> expect(@builder.env).to.deep.equal @env
+      And ->
+        console.log('builder env:', @builder.env)
+        console.log('env:', @env)
+        expect(@builder.env).to.deep.equal @env
 
     context 'options.task', ->
       Given -> delete @options.cmd
