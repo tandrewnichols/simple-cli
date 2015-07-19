@@ -1,3 +1,5 @@
+diff = require 'deep-diff'
+
 describe 'builder', ->
   Given -> @async = {}
   Given -> @readline =
@@ -42,8 +44,7 @@ describe 'builder', ->
       And -> expect(@builder.grunt).to.equal @grunt
       And -> expect(@builder.customOptions).to.equal 'options'
       And ->
-        console.log('builder env:', @builder.env)
-        console.log('env:', @env)
+        console.log(diff(@builder.env, @env))
         expect(@builder.env).to.deep.equal @env
 
     context 'options.task', ->
