@@ -130,6 +130,38 @@ describe 'builder', ->
     ]
 
   describe '.getDynamicValues', ->
+    Given -> @cb = sinon.stub()
+    Given -> @context =
+      populateFromGrunt: sinon.stub()
+      template: sinon.stub()
+      getReadlineValues: sinon.stub()
+
+    context 'no keys', ->
+      Given -> @context.args = ['a', 'b']
+      When -> @Builder.prototype.getDynamicValues.call @context, @cb
+      Then -> expect(@cb).to.have.been.called
+      And -> expect(@context.populateFromGrunt.called).to.be.false()
+
+    context 'all keys filled by grunt', ->
+      Given -> @context.args = ['{{ a }}', '{{ b }}']
+      Given -> @context.populateFromGrunt.returns a: 'b', b: 'c'
+      When -> @Builder.prototype.getDynamicValues.call @context, @cb
+      Then -> expect(@context.populateFromGrunt).to.have.been.calledWith ['a', 'b']
+      And -> expect(@context.template).to.have.been.calledWith '{{ a }}||{{ b }}',
+        a: 'b'
+        b: 'c'
+      And -> expect(@cb).to.have.been.called
+
+    context 'some keys missing', ->
+      Given -> @context.args = ['{{ a }}', '{{ b }}']
+      Given -> @context.populateFromGrunt.returns a: 'b', b: null
+      When -> @Builder.prototype.getDynamicValues.call @context, @cb
+      Then -> expect(@context.populateFromGrunt).to.have.been.calledWith ['a', 'b']
+      And -> expect(@context.template.called).to.be.false()
+      And -> expect(@context.getReadlineValues).to.have.been.calledWith ['b'], { a: 'b', b: null }, '{{ a }}||{{ b }}', @cb
+
+
+  describe '.getReadlineValues', ->
     # There are ridiculous shenanigans involved in
     # stubbing console.log only SOMETIMES. But . . .
     # I really hate noise in test output, so
@@ -152,40 +184,22 @@ describe 'builder', ->
       populateFromGrunt: sinon.stub()
       template: sinon.stub()
       prompt: sinon.stub()
+      args: ['{{ a }}', '{{ b }}']
       grunt:
         fail:
           fatal: sinon.stub()
-
-    context 'no keys', ->
-      Given -> @context.args = ['a', 'b']
-      When -> @Builder.prototype.getDynamicValues.call @context, @cb
-      Then -> expect(@cb).to.have.been.called
-      And -> expect(@context.populateFromGrunt.called).to.be.false()
-
-    context 'all keys filled by grunt', ->
-      Given -> @context.args = ['{{ a }}', '{{ b }}']
-      Given -> @context.populateFromGrunt.returns a: 'b', b: 'c'
-      When -> @Builder.prototype.getDynamicValues.call @context, @cb
-      Then -> expect(@context.populateFromGrunt).to.have.been.calledWith ['a', 'b']
-      And -> expect(@context.template).to.have.been.calledWith '{{ a }}||{{ b }}',
-        a: 'b'
-        b: 'c'
-      And -> expect(@cb).to.have.been.called
-      And -> expect(@readline.createInterface.called).to.be.false()
+    Given -> @rl =
+      close: sinon.stub()
+    Given -> @readline.createInterface.withArgs(
+      input: process.stdin
+      output: process.stdout
+    ).returns @rl
 
     context 'async no error', ->
       Given -> @context.prompt.callsArgWith 1, 'answer'
-      Given -> @rl =
-        close: sinon.stub()
-      Given -> @readline.createInterface.withArgs(
-        input: process.stdin
-        output: process.stdout
-      ).returns @rl
-      Given -> @context.args = ['{{ a }}', '{{ b }}']
       Given -> @context.populateFromGrunt.returns a: 'b', b: null
-      When -> @Builder.prototype.getDynamicValues.call @context, @cb
-      Then -> expect(@context.populateFromGrunt).to.have.been.calledWith ['a', 'b']
-      And -> expect(@context.prompt).to.have.been.calledWith 'b', sinon.match.func
+      When -> @Builder.prototype.getReadlineValues.call @context, ['b'], { a: 'b', b: null }, '{{ a }}||{{ b }}', @cb
+      Then -> expect(@context.prompt).to.have.been.calledWith 'b', sinon.match.func
       And -> expect(@rl.close).to.have.been.called
       And -> expect(@context.template).to.have.been.calledWith '{{ a }}||{{ b }}',
         a: 'b',
@@ -194,19 +208,10 @@ describe 'builder', ->
 
     context 'async error', ->
       afterEach -> @async.reduce.restore()
-      Given -> @rl =
-        close: sinon.stub()
-      Given -> @readline.createInterface.withArgs(
-        input: process.stdin
-        output: process.stdout
-      ).returns @rl
-      Given -> @context.args = ['{{ a }}', '{{ b }}']
-      Given -> @context.populateFromGrunt.returns a: 'b', b: null
       Given -> sinon.stub @async, 'reduce'
       Given -> @async.reduce.callsArgWith 3, 'error'
-      When -> @Builder.prototype.getDynamicValues.call @context, @cb
-      Then -> expect(@context.populateFromGrunt).to.have.been.calledWith ['a', 'b']
-      And -> expect(@rl.close).to.have.been.called
+      When -> @Builder.prototype.getReadlineValues.call @context, ['b'], { a: 'b', b: null }, '{{ a }}||{{ b }}', @cb
+      Then -> expect(@rl.close).to.have.been.called
       And -> expect(@context.grunt.fail.fatal).to.have.been.calledWith 'error'
 
   describe '.populateFromGrunt', ->

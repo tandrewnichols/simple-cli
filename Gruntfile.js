@@ -5,8 +5,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-travis-matrix');
   grunt.loadNpmTasks('grunt-simple-istanbul');
+  grunt.loadNpmTasks('grunt-open');
 
   grunt.initConfig({
+    open: {
+      coverage: {
+        path: 'coverage/lcov-report/index.html'
+      }
+    },
     clean: {
       coverage: 'coverage'
     },
