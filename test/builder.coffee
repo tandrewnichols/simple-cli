@@ -1,9 +1,13 @@
+chalk = require 'chalk'
+util = require 'util'
+
 describe 'builder', ->
   Given -> @async = {}
+  Given -> @spawn = sinon.stub()
   Given -> @readline =
     createInterface: sinon.stub()
   Given -> @Builder = sandbox '../lib/builder',
-    'win-spawn': {}
+    'win-spawn': @spawn
     readline: @readline
     async: @async
 
@@ -112,12 +116,16 @@ describe 'builder', ->
         bool: true
         long: 'baz'
         'name=': 'Andrew'
+        list: ['rope', 'jelly']
     When -> @Builder.prototype.buildOptions.apply @context
+    And -> console.log @context.args
     Then -> expect(@context.args).to.deep.equal [
       'foo', 'bar',
       '-a', '-b', 'b',
       '--bool', '--long', 'baz',
       '--name=Andrew',
+      '--list', 'rope',
+      '--list', 'jelly',
       'hello', 'world'
     ]
 
@@ -200,3 +208,182 @@ describe 'builder', ->
       Then -> expect(@context.populateFromGrunt).to.have.been.calledWith ['a', 'b']
       And -> expect(@rl.close).to.have.been.called
       And -> expect(@context.grunt.fail.fatal).to.have.been.calledWith 'error'
+
+  describe '.populateFromGrunt', ->
+    Given -> @context =
+      grunt:
+        option: sinon.stub()
+        config:
+          get: sinon.stub()
+    Given -> @context.grunt.option.withArgs('foo').returns 'banana'
+    Given -> @context.grunt.config.get.withArgs('bar').returns 'kiwi'
+    When -> @obj = @Builder.prototype.populateFromGrunt.call @context, ['foo', 'bar', 'baz']
+    Then -> expect(@obj).to.deep.equal
+      foo: 'banana'
+      bar: 'kiwi'
+      baz: null
+
+  describe '.template', ->
+    Given -> @context = {}
+    When -> @Builder.prototype.template.call @context, '{{ foo }}||{{ bar }}', { foo: 'banana', bar: 'cream pie' }
+    Then -> expect(@context.args).to.deep.equal ['banana', 'cream pie']
+    
+  describe '.prompt', ->
+    Given -> @context =
+      rl:
+        question: sinon.stub()
+    When -> @Builder.prototype.prompt.call @context, 'blah', 'cb'
+    Then -> expect(@context.rl.question).to.have.been.calledWith '   blah: ', 'cb'
+
+  describe '.handleCustomOption', ->
+    context 'with option', ->
+      Given -> @context =
+        config:
+          foo: 'bar'
+        customOptions:
+          foo: sinon.stub()
+      Given -> @cb = sinon.stub()
+      When -> @Builder.prototype.handleCustomOption.call @context, 'foo', @cb
+      Then -> expect(@context.customOptions.foo).to.have.been.calledWith 'bar', @context, @cb
+
+    context 'with no option', ->
+      Given -> @context =
+        config: {}
+        customOptions:
+          foo: sinon.stub()
+      Given -> @cb = sinon.stub()
+      When -> @Builder.prototype.handleCustomOption.call @context, 'foo', @cb
+      Then -> expect(@cb).to.have.been.called
+
+  describe '.debug', ->
+    Given -> @context =
+      callComplete: sinon.stub()
+      grunt:
+        log:
+          writeln: sinon.stub()
+      config:
+        cwd: 'cwd'
+        onComplete: true
+        debug:
+          stdout: 'stdout'
+          stderr: 'stderr'
+      cmd: 'cmd'
+      target: 'target'
+      args: ['foo', 'bar']
+      env: 'env'
+      done: sinon.stub()
+
+    context 'with onComplete', ->
+      context 'debug is object', ->
+        When -> @Builder.prototype.debug.call @context
+        Then -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('cmd target foo bar')
+        And -> expect(@context.grunt.log.writeln).to.have.been.calledWith()
+        And -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect(
+          env: 'env'
+          cwd: 'cwd'
+        ))
+        And -> expect(@context.callComplete).to.have.been.calledWith 1, 'stderr', 'stdout'
+
+      context 'debug is boolean', ->
+        Given -> @context.config.debug = true
+        When -> @Builder.prototype.debug.call @context
+        Then -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('cmd target foo bar')
+        And -> expect(@context.grunt.log.writeln).to.have.been.calledWith()
+        And -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect(
+          env: 'env'
+          cwd: 'cwd'
+        ))
+        And -> expect(@context.callComplete).to.have.been.calledWith 1, '[DEBUG]: stderr', '[DEBUG]: stdout'
+
+    context 'with no onComplete', ->
+      Given -> delete @context.config.onComplete
+      When -> @Builder.prototype.debug.call @context
+      Then -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'Command: ' + chalk.cyan('cmd target foo bar')
+      And -> expect(@context.grunt.log.writeln).to.have.been.calledWith()
+      And -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'Options: ' + chalk.cyan(util.inspect(
+        env: 'env'
+        cwd: 'cwd'
+      ))
+      And -> expect(@context.done).to.have.been.called
+
+  describe '.callComplete', ->
+    Given -> @context =
+      done: 'done'
+      config:
+        onComplete: sinon.stub()
+
+    context 'with a code', ->
+      When -> @Builder.prototype.callComplete.call @context, 1, 'err', 'out'
+      Then -> expect(@context.config.onComplete).to.have.been.calledWith sinon.match({ message: 'err', code: 1 }), 'out', 'done'
+
+    context 'with no code but stderr', ->
+      When -> @Builder.prototype.callComplete.call @context, null, 'err', 'out'
+      Then -> expect(@context.config.onComplete).to.have.been.calledWith sinon.match({ message: 'err', code: null }), 'out', 'done'
+
+    context 'no error', ->
+      When -> @Builder.prototype.callComplete.call @context, null, null, 'out'
+      Then -> expect(@context.config.onComplete).to.have.been.calledWith null, 'out', 'done'
+
+  describe '.spawn', ->
+    Given -> @child =
+      stdout:
+        on: sinon.stub()
+      stderr:
+        on: sinon.stub()
+      on: sinon.stub()
+    Given -> @spawn.withArgs('cmd', ['target', 'foo', 'bar'], { env: 'env', cwd: 'cwd' }).returns @child
+    Given -> @context =
+      callComplete: sinon.stub()
+      done: sinon.stub()
+      cmd: 'cmd'
+      target: 'target'
+      args: ['foo', 'bar']
+      env: 'env'
+      config:
+        cwd: 'cwd'
+        onComplete: true
+      grunt:
+        log:
+          writeln: sinon.stub()
+    When -> @Builder.prototype.spawn.call @context
+    And -> @child.stdout.on.getCall(0).args[1] 'data'
+    And -> @child.stderr.on.getCall(0).args[1] 'error'
+    And -> @close = @child.on.getCall(0).args[1]
+
+    context 'no failure', ->
+      context 'with onComplete', ->
+        When -> @close()
+        Then -> expect(@context.callComplete).to.have.been.calledWith undefined, 'error', 'data'
+        And -> expect(@context.grunt.log.writeln.called).to.be.false()
+
+      context 'with no onComplete', ->
+        When -> delete @context.config.onComplete
+        And -> @close()
+        Then -> expect(@context.done).to.have.been.calledWith undefined
+        And -> expect(@context.grunt.log.writeln.called).to.be.false()
+
+    context 'with failure but no force', ->
+      context 'with onComplete', ->
+        When -> @close(1)
+        Then -> expect(@context.callComplete).to.have.been.calledWith 1, 'error', 'data'
+        And -> expect(@context.grunt.log.writeln.called).to.be.false()
+
+      context 'with no onComplete', ->
+        When -> delete @context.config.onComplete
+        And -> @close(1)
+        Then -> expect(@context.done).to.have.been.calledWith 1
+        And -> expect(@context.grunt.log.writeln.called).to.be.false()
+
+    context 'with failure and force', ->
+      When -> @context.config.force = true
+
+      context 'with onComplete', ->
+        When -> @close(1)
+        Then -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'cmd:target returned code 1. Ignoring...'
+        And -> expect(@context.callComplete).to.have.been.calledWith 0, 'error', 'data'
+
+      context 'with no onComplete', ->
+        When -> delete @context.config.onComplete
+        And -> @close(1)
+        Then -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'cmd:target returned code 1. Ignoring...'
+        And -> expect(@context.done).to.have.been.calledWith 0

@@ -1,7 +1,7 @@
 describe 'simple cli', ->
   Given -> @Builder = sinon.stub()
   Given -> @Builder.returns
-  Given -> @builder = spyObj 'configure', 'buildOptions', 'getDynamicValues', 'spawn', 'handleCustomOptions', 'debug'
+  Given -> @builder = spyObj 'configure', 'buildOptions', 'getDynamicValues', 'spawn', 'handleCustomOption', 'debug'
   Given -> @builder.configure.returns @builder
   Given -> @builder.buildOptions.returns @builder
   Given -> @Builder.returns @builder
@@ -41,12 +41,12 @@ describe 'simple cli', ->
       Given -> @cli.spawn(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
-      Given -> @builder.handleCustomOptions.callsArg 1
+      Given -> @builder.handleCustomOption.callsArg 1
       When -> @task.apply(@context)
       Then -> expect(@Builder).to.have.been.calledWith @options, @context, @grunt
       And -> expect(@builder.buildOptions).to.have.been.called
       And -> expect(@builder.getDynamicValues).to.have.been.calledWith sinon.match.func
-      And -> expect(@builder.handleCustomOptions).to.have.been.calledWith 'foo', sinon.match.func
+      And -> expect(@builder.handleCustomOption).to.have.been.calledWith 'foo', sinon.match.func
       And -> expect(@builder.spawn).to.have.been.called
 
     context 'async throws error', ->
@@ -59,12 +59,12 @@ describe 'simple cli', ->
       Given -> @cli.spawn(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
-      Given -> @builder.handleCustomOptions.callsArgWith 1, 'error'
+      Given -> @builder.handleCustomOption.callsArgWith 1, 'error'
       When -> @task.apply(@context)
       Then -> expect(@Builder).to.have.been.calledWith @options, @context, @grunt
       And -> expect(@builder.buildOptions).to.have.been.called
       And -> expect(@builder.getDynamicValues).to.have.been.calledWith sinon.match.func
-      And -> expect(@builder.handleCustomOptions).to.have.been.calledWith 'foo', sinon.match.func
+      And -> expect(@builder.handleCustomOption).to.have.been.calledWith 'foo', sinon.match.func
       And -> expect(@grunt.fail.fatal).to.have.been.calledWith 'error'
       And -> expect(@builder.spawn.called).to.be.false()
 
@@ -79,11 +79,11 @@ describe 'simple cli', ->
       Given -> @cli.spawn(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
-      Given -> @builder.handleCustomOptions.callsArgWith 1
+      Given -> @builder.handleCustomOption.callsArgWith 1
       When -> @task.apply(@context)
       Then -> expect(@Builder).to.have.been.calledWith @options, @context, @grunt
       And -> expect(@builder.buildOptions).to.have.been.called
       And -> expect(@builder.getDynamicValues).to.have.been.calledWith sinon.match.func
-      And -> expect(@builder.handleCustomOptions).to.have.been.calledWith 'foo', sinon.match.func
+      And -> expect(@builder.handleCustomOption).to.have.been.calledWith 'foo', sinon.match.func
       And -> expect(@builder.debug).to.have.been.called
       And -> expect(@builder.spawn.called).to.be.false()
