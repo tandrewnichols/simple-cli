@@ -11,10 +11,10 @@ describe 'simple cli', ->
     './builder': @Builder
 
   describe 'returns a function', ->
-    Then -> expect(@cli.spawn('name', 'description')).to.be.a('function')
+    Then -> expect(@cli('name', 'description')).to.be.a('function')
 
   describe 'sets up a grunt multitask', ->
-    Given -> @func = @cli.spawn
+    Given -> @func = @cli
       task: 'task'
       description: 'description'
     Given -> @grunt =
@@ -38,7 +38,7 @@ describe 'simple cli', ->
         options:
           foo: 'bar'
         callback: @cb
-      Given -> @cli.spawn(@options)(@grunt)
+      Given -> @cli(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
       Given -> @builder.handleCustomOption.callsArg 1
@@ -56,7 +56,7 @@ describe 'simple cli', ->
         options:
           foo: 'bar'
         callback: @cb
-      Given -> @cli.spawn(@options)(@grunt)
+      Given -> @cli(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
       Given -> @builder.handleCustomOption.callsArgWith 1, 'error'
@@ -76,7 +76,7 @@ describe 'simple cli', ->
           foo: 'bar'
         callback: @cb
       Given -> @builder.debugOn = true
-      Given -> @cli.spawn(@options)(@grunt)
+      Given -> @cli(@options)(@grunt)
       Given -> @task = @grunt.registerMultiTask.getCall(0).args[2]
       Given -> @context = {}
       Given -> @builder.handleCustomOption.callsArgWith 1

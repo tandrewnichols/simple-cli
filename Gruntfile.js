@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-travis-matrix');
   grunt.loadNpmTasks('grunt-simple-istanbul');
   grunt.loadNpmTasks('grunt-open');
+  grunt.loadTasks('test/fixtures/tasks');
 
   grunt.initConfig({
     open: {
@@ -66,7 +67,29 @@ module.exports = function(grunt) {
         },
         cmd: 'cover grunt mocha'
       },
-    }
+    },
+
+    // Test commands
+    'simple-test': {
+      options: {
+        simple: {
+          onComplete: function(err, stdout) {
+            console.log(stdout);
+          }
+        }
+      },
+      opts: {
+        options: {
+          fruit: 'banana',
+          animal: ['tiger', 'moose']
+          bar: true,
+          baz: false,
+          b: 'quux',
+          c: true,
+          'author=': 'Andrew'
+        }
+      }
+     }
   });
 
   grunt.registerTask('mocha', ['mochaTest:test']);

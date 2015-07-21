@@ -15,8 +15,10 @@ describe 'builder', ->
     Given -> @options =
       cmd: 'cmd'
       task: 'task'
-      callback: 'foo'
+      callback:
+        bind: sinon.stub()
       options: 'options'
+    Given -> @options.callback.bind.returns 'bound'
     Given -> @context =
       options: sinon.stub()
       async: sinon.stub()
@@ -39,7 +41,7 @@ describe 'builder', ->
       When -> @builder = new @Builder @options, @context, @grunt
       And -> @builderEnv = JSON.parse(JSON.stringify(@builder.env))
       Then -> expect(@builder.cmd).to.equal 'cmd'
-      And -> expect(@builder.done).to.equal 'foo'
+      And -> expect(@builder.done).to.equal 'bound'
       And -> expect(@builder.options).to.deep.equal foo: 'bar'
       And -> expect(@builder.config).to.deep.equal
         debug: true
