@@ -52,6 +52,7 @@
     "config-extend": "0.0.7",
     "key-list": "^0.1.1",
     "lodash": "^3.1.0",
+    "opted": "^1.0.0",
     "underscore.string": "^3.0.2",
     "varity": "^1.0.3",
     "win-spawn": "^2.0.0"
