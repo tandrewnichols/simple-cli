@@ -81,7 +81,7 @@ module.exports = function(grunt) {
       opts: {
         options: {
           fruit: 'banana',
-          animal: ['tiger', 'moose']
+          animal: ['tiger', 'moose'],
           bar: true,
           baz: false,
           b: 'quux',
