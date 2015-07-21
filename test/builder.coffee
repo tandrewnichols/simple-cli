@@ -118,7 +118,6 @@ describe 'builder', ->
         'name=': 'Andrew'
         list: ['rope', 'jelly']
     When -> @Builder.prototype.buildOptions.apply @context
-    And -> console.log @context.args
     Then -> expect(@context.args).to.deep.equal [
       'foo', 'bar',
       '-a', '-b', 'b',
