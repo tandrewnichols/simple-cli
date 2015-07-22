@@ -1,0 +1,13 @@
+var cli = require('../../../lib/simple-cli');
+var path = require('path');
+
+module.exports = cli({
+  task: 'opts-test',
+  description: 'Test',
+  cmd: path.resolve(__dirname, '../test.js'),
+  options: {
+    foo: function(val) {
+      console.log('Some foo happened!', val, 'was involved.');
+    }
+  }
+});

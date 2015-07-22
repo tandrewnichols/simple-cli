@@ -8,6 +8,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-open');
   grunt.loadTasks('test/fixtures/tasks');
 
+  var onComplete = function(err, stdout, done) {
+    console.log(stdout);
+    done();
+  };
+
   grunt.initConfig({
     open: {
       coverage: {
@@ -71,25 +76,119 @@ module.exports = function(grunt) {
 
     // Test commands
     'simple-test': {
-      options: {
-        simple: {
-          onComplete: function(err, stdout) {
-            console.log(stdout);
-          }
-        }
-      },
       opts: {
         options: {
           fruit: 'banana',
           animal: ['tiger', 'moose'],
-          bar: true,
-          baz: false,
+          multiWord: true,
+          negated: false,
           b: 'quux',
           c: true,
-          'author=': 'Andrew'
+          'author=': 'Andrew',
+          simple: {
+            onComplete: onComplete
+          }
+        }
+      },
+      env: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            env: {
+              FOO: 'BAR'
+            }
+          }
+        }
+      },
+      cwd: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            cwd: __dirname + '/test'
+          },
+          cwd: true
+        }
+      },
+      force: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            force: true
+          },
+          fail: true
+        }
+      },
+      cmd: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            cmd: 'not-cmd'
+          }
+        }
+      },
+      args: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            args: ['jingle', 'bells']
+          }
+        }
+      },
+      raw: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            rawArgs: '-- $% "hello" '
+          }
+        }
+      },
+      debug: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            debug: true
+          }
+        }
+      },
+      stdout: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            debug: {
+              stdout: 'Hey banana'
+            }
+          }
+        }
+      },
+      dynamic: {
+        options: {
+          simple: {
+            onComplete: onComplete
+          },
+          foo: '{{ foo }}'
         }
       }
-     }
+    },
+    proxy: {},
+    'opts-test': {
+      custom: {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            foo: 'Ned'
+          }
+        }
+      }
+    },
+    'callback-test': {
+      cb: {
+        options: {
+          simple: {
+            onComplete: onComplete
+          }
+        }
+      }
+    }
   });
 
   grunt.registerTask('mocha', ['mochaTest:test']);

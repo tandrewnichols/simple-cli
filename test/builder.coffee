@@ -41,7 +41,8 @@ describe 'builder', ->
       When -> @builder = new @Builder @options, @context, @grunt
       And -> @builderEnv = JSON.parse(JSON.stringify(@builder.env))
       Then -> expect(@builder.cmd).to.equal 'cmd'
-      And -> expect(@builder.done).to.equal 'bound'
+      And -> expect(@builder.callback).to.equal 'bound'
+      And -> expect(@builder.done).to.equal 'async'
       And -> expect(@builder.options).to.deep.equal foo: 'bar'
       And -> expect(@builder.config).to.deep.equal
         debug: true
@@ -62,6 +63,7 @@ describe 'builder', ->
       Given -> delete @options.callback
       When -> @builder = new @Builder @options, @context, @grunt
       Then -> expect(@builder.done).to.equal 'async'
+      Then -> expect(@builder.callback).to.equal 'async'
 
     context 'grunt.option', ->
       Given -> @grunt.option.withArgs('debug').returns 'grunt'
@@ -277,7 +279,7 @@ describe 'builder', ->
       target: 'target'
       args: ['foo', 'bar']
       env: 'env'
-      done: sinon.stub()
+      callback: sinon.stub()
 
     context 'with onComplete', ->
       context 'debug is object', ->
@@ -310,11 +312,11 @@ describe 'builder', ->
         env: 'env'
         cwd: 'cwd'
       ))
-      And -> expect(@context.done).to.have.been.called
+      And -> expect(@context.callback).to.have.been.called
 
   describe '.callComplete', ->
     Given -> @context =
-      done: 'done'
+      callback: 'done'
       config:
         onComplete: sinon.stub()
 
@@ -340,7 +342,7 @@ describe 'builder', ->
     Given -> @spawn.withArgs('cmd', ['target', 'foo', 'bar'], { env: 'env', cwd: 'cwd' }).returns @child
     Given -> @context =
       callComplete: sinon.stub()
-      done: sinon.stub()
+      callback: sinon.stub()
       cmd: 'cmd'
       target: 'target'
       args: ['foo', 'bar']
@@ -365,7 +367,7 @@ describe 'builder', ->
       context 'with no onComplete', ->
         When -> delete @context.config.onComplete
         And -> @close()
-        Then -> expect(@context.done).to.have.been.calledWith undefined
+        Then -> expect(@context.callback).to.have.been.calledWith undefined
         And -> expect(@context.grunt.log.writeln.called).to.be.false()
 
     context 'with failure but no force', ->
@@ -377,7 +379,7 @@ describe 'builder', ->
       context 'with no onComplete', ->
         When -> delete @context.config.onComplete
         And -> @close(1)
-        Then -> expect(@context.done).to.have.been.calledWith 1
+        Then -> expect(@context.callback).to.have.been.calledWith 1
         And -> expect(@context.grunt.log.writeln.called).to.be.false()
 
     context 'with failure and force', ->
@@ -392,4 +394,4 @@ describe 'builder', ->
         When -> delete @context.config.onComplete
         And -> @close(1)
         Then -> expect(@context.grunt.log.writeln).to.have.been.calledWith 'cmd:target returned code 1. Ignoring...'
-        And -> expect(@context.done).to.have.been.calledWith 0
+        And -> expect(@context.callback).to.have.been.calledWith 0
