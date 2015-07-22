@@ -39,8 +39,11 @@ module.exports = function(grunt) {
         ui: 'mocha-given',
         require: 'coffee-script/register'
       },
-      test: {
-        src: ['test/helpers.coffee', 'test/**/*.coffee']
+      unit: {
+        src: ['test/helpers.coffee', 'test/**/*.coffee', '!test/integration.coffee']
+      },
+      integration: {
+        src: ['test/helpers.coffee', 'test/integration.coffee']
       }
     },
     travis: {
@@ -70,7 +73,7 @@ module.exports = function(grunt) {
           root: 'lib',
           dir: 'coverage'
         },
-        cmd: 'cover grunt mocha'
+        cmd: 'cover grunt mochaTest:unit'
       },
     },
 
@@ -191,7 +194,7 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('mocha', ['mochaTest:test']);
+  grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('default', ['jshint:all', 'mocha']);
   grunt.registerTask('coverage', ['istanbul']);
   grunt.registerTask('ci', ['jshint:all', 'mocha', 'travis']);
