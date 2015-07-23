@@ -11,18 +11,28 @@ describe 'simple cli', ->
     './builder': @Builder
 
   describe 'returns a function', ->
-    Then -> expect(@cli('name', 'description')).to.be.a('function')
+    Then -> expect(@cli('name')).to.be.a('function')
 
   describe 'sets up a grunt multitask', ->
-    Given -> @func = @cli
-      task: 'task'
-      description: 'description'
-    Given -> @grunt =
-      registerMultiTask: sinon.stub()
-      fail:
-        fatal: sinon.stub()
-    When -> @func @grunt
-    Then -> expect(@grunt.registerMultiTask).to.have.been.calledWith 'task', 'description', sinon.match.func
+    context 'with just a string', ->
+      Given -> @func = @cli 'blah'
+      Given -> @grunt =
+        registerMultiTask: sinon.stub()
+        fail:
+          fatal: sinon.stub()
+      When -> @func @grunt
+      Then -> expect(@grunt.registerMultiTask).to.have.been.calledWith 'blah', 'A simple-cli grunt wrapper for blah', sinon.match.func
+
+    context 'with an object', ->
+      Given -> @func = @cli
+        task: 'task'
+        description: 'description'
+      Given -> @grunt =
+        registerMultiTask: sinon.stub()
+        fail:
+          fatal: sinon.stub()
+      When -> @func @grunt
+      Then -> expect(@grunt.registerMultiTask).to.have.been.calledWith 'task', 'description', sinon.match.func
     
   describe 'configures a task', ->
     Given -> @grunt =

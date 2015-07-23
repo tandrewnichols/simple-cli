@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.org/tandrewnichols/simple-cli.png)](https://travis-ci.org/tandrewnichols/simple-cli) [![downloads](http://img.shields.io/npm/dm/simple-cli.svg)](https://npmjs.org/package/simple-cli) [![npm](http://img.shields.io/npm/v/simple-cli.svg)](https://npmjs.org/package/simple-cli) [![Code Climate](https://codeclimate.com/github/tandrewnichols/simple-cli/badges/gpa.svg)](https://codeclimate.com/github/tandrewnichols/simple-cli) [![Test Coverage](https://codeclimate.com/github/tandrewnichols/simple-cli/badges/coverage.svg)](https://codeclimate.com/github/tandrewnichols/simple-cli) [![dependencies](https://david-dm.org/tandrewnichols/simple-cli.png)](https://david-dm.org/tandrewnichols/simple-cli)
 
-[![NPM info](https://nodei.co/npm/simple-cli.png?downloads=true)](https://nodei.co/npm/simple-cli.png?downloads=true)
-
 # simple-cli
 
 Gruntify command-line APIs with ease.
@@ -19,12 +17,8 @@ This module is intended to be used with grunt to make writing plugin wrappers fo
 ```javascript
 var cli = require('simple-cli');
 
-module.exports = function(grunt) {
-  // Or "npm" or "hg" or "bower" etc.
-  grunt.registerMultiTask('git', 'A git wrapper', function() {
-    cli.spawn(grunt, this);
-  });
-};
+// Or "npm" or "hg" or "bower" etc.
+module.exports = cli('git');
 ```
 
 Yes, that is _all_ that is necessary to build a fully functioning git plugin for grunt.
@@ -137,29 +131,9 @@ grunt.initConfig({
 
 This will run `blerg hashbang -a`.
 
-#### Multiple short options grouped together
-
-Yep, this works too. Because that's how a developer would do it.
-
-```js
-grunt.initConfig({
-  blerg: {
-    blaff: {
-      options: {
-        a: true,
-        b: true,
-        c: 'foo'
-      }
-    }
-  }
-});
-```
-
-This will run `blerg blaff -ab -c foo`.
-
 #### Options with equal signs
 
-Hmm, some libraries have weird "=" syntax options. Like git. And blerg.
+Some libraries have weird "="-style options. Like git. And blerg.
 
 ```js
 grunt.initConfig({
@@ -315,7 +289,7 @@ Running `grunt git:pushOrigin` will run `git push origin master` and running `gr
 
 #### args
 
-Additional, non-flag arguments to pass to the executable. These can be passed as an array (as in `git:pushOrigin` above) or as a single string with arguments separated by a space (as in `git:pushHeroku` above).
+Additional, non-flag arguments to pass to the executable. These can be passed as an array (as in `git:pushOrigin` above) or as a single string with arguments separated by a space (as in `git:pushHeroku` above). Note that, if you need to use spaces inside an argument, you will need to use the array syntax, since `simple-cli` will split a string on spaces.
 
 #### rawArgs
 
