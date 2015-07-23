@@ -32,11 +32,7 @@ Let's write a wrapper for the super-awesome (and totally made up) `blerg` execut
 ```javascript
 var cli = require('simple-cli');
 
-module.exports = function(grunt) {
-  grunt.registerMultiTask('blerg', 'A wrapper for blerg-cli', function() {
-    cli.spawn(grunt, this);
-  });
-};
+module.exports = cli('blerg');
 ```
 
 Done. Now we can blerg on the command line via grunt! Let's see how an end-user would consume our new library.
