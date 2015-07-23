@@ -110,27 +110,52 @@ describe 'builder', ->
       And -> expect(@context.config.args).to.deep.equal ['git', 'er', 'done']
 
   describe '.buildOptions', ->
-    Given -> @context =
-      config:
-        args: ['foo', 'bar']
-        rawArgs: ['hello', 'world']
-      options:
-        a: true
-        b: 'b'
-        bool: true
-        long: 'baz'
-        'name=': 'Andrew'
-        list: ['rope', 'jelly']
-    When -> @Builder.prototype.buildOptions.apply @context
-    Then -> expect(@context.args).to.deep.equal [
-      'foo', 'bar',
-      '-a', '-b', 'b',
-      '--bool', '--long', 'baz',
-      '--name=Andrew',
-      '--list', 'rope',
-      '--list', 'jelly',
-      'hello', 'world'
-    ]
+    context 'with no singleDash', ->
+      Given -> @context =
+        config:
+          args: ['foo', 'bar']
+          rawArgs: ['hello', 'world']
+        options:
+          a: true
+          b: 'b'
+          bool: true
+          long: 'baz'
+          'name=': 'Andrew'
+          list: ['rope', 'jelly']
+      When -> @Builder.prototype.buildOptions.apply @context
+      Then -> expect(@context.args).to.deep.equal [
+        'foo', 'bar',
+        '-a', '-b', 'b',
+        '--bool', '--long', 'baz',
+        '--name=Andrew',
+        '--list', 'rope',
+        '--list', 'jelly',
+        'hello', 'world'
+      ]
+
+    context 'with singleDash', ->
+      Given -> @context =
+        singleDash: true
+        config:
+          args: ['foo', 'bar']
+          rawArgs: ['hello', 'world']
+        options:
+          a: true
+          b: 'b'
+          bool: true
+          long: 'baz'
+          'name=': 'Andrew'
+          list: ['rope', 'jelly']
+      When -> @Builder.prototype.buildOptions.apply @context
+      Then -> expect(@context.args).to.deep.equal [
+        'foo', 'bar',
+        '-a', '-b', 'b',
+        '-bool', '-long', 'baz',
+        '-name=Andrew',
+        '-list', 'rope',
+        '-list', 'jelly',
+        'hello', 'world'
+      ]
 
   describe '.getDynamicValues', ->
     Given -> @cb = sinon.stub()

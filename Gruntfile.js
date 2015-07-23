@@ -181,6 +181,14 @@ module.exports = function(grunt) {
             foo: 'Ned'
           }
         }
+      },
+      dash: {
+        options: {
+          simple: {
+            onComplete: onComplete
+          },
+          foo: 'bar'
+        }
       }
     },
     'callback-test': {

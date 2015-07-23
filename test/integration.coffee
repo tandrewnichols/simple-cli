@@ -121,6 +121,14 @@ describe 'integration', ->
     And -> @stdout = @stdout.split('\n')[1]
     Then -> expect(@stdout).to.match 'Some foo happened! Ned was involved.'
 
+  context 'singleDash options', ->
+    When -> @child = spawn 'grunt', ['opts-test:dash', '--no-color']
+    And (done) ->
+      @child.stdout.on 'data', (data) => @stdout += data.toString()
+      @child.on 'close', -> done()
+    And -> @stdout = @stdout.split('\n')[1]
+    Then -> expect(@stdout).to.equal 'dash -foo bar'
+
   context 'callback', ->
     When -> @child = spawn 'grunt', ['callback-test:cb', '--no-color']
     And (done) ->
