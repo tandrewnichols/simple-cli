@@ -1,7 +1,5 @@
 [![Build Status](https://travis-ci.org/tandrewnichols/simple-cli.png)](https://travis-ci.org/tandrewnichols/simple-cli) [![downloads](http://img.shields.io/npm/dm/simple-cli.svg)](https://npmjs.org/package/simple-cli) [![npm](http://img.shields.io/npm/v/simple-cli.svg)](https://npmjs.org/package/simple-cli) [![Code Climate](https://codeclimate.com/github/tandrewnichols/simple-cli/badges/gpa.svg)](https://codeclimate.com/github/tandrewnichols/simple-cli) [![Test Coverage](https://codeclimate.com/github/tandrewnichols/simple-cli/badges/coverage.svg)](https://codeclimate.com/github/tandrewnichols/simple-cli) [![dependencies](https://david-dm.org/tandrewnichols/simple-cli.png)](https://david-dm.org/tandrewnichols/simple-cli)
 
-[![NPM info](https://nodei.co/npm/simple-cli.png?downloads=true)](https://nodei.co/npm/simple-cli.png?downloads=true)
-
 # simple-cli
 
 Gruntify command-line APIs with ease.
@@ -19,26 +17,34 @@ This module is intended to be used with grunt to make writing plugin wrappers fo
 ```javascript
 var cli = require('simple-cli');
 
-module.exports = function(grunt) {
-  // Or "npm" or "hg" or "bower" etc.
-  grunt.registerMultiTask('git', 'A git wrapper', function() {
-    cli.spawn(grunt, this);
-  });
-};
+// Or "npm" or "hg" or "bower" etc.
+module.exports = cli('git');
 ```
 
 Yes, that is _all_ that is necessary to build a fully functioning git plugin for grunt.
 
+This module allows any command on the executable to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the executable can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for executables do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Below are the kinds of options that can be specified.
+
 ## Options on the executable
 
-This module allows any command on the executable to be invoked as a target with any options specified (camel-cased) under options. It basically makes it possible to do anything the executable can do _in grunt_. Even options not normally a part of the tool (i.e. from a branch or fork) can be invoked with `simple-cli` because `simple-cli` doesn't allow options from a list of known options like most plugins for executables do. It, instead, assumes that the end-user _actually does know what he or she is doing_ and that he or she knows, or can look up, the available options. Here are the kinds of options that can be specified:
+Let's write a wrapper for the super-awesome (and totally made up) `blerg` executable. First, we write the wrapper and publish it as `grunt-blerg`:
+
+```javascript
+var cli = require('simple-cli');
+
+module.exports = cli('blerg');
+```
+
+Done. Now we can blerg on the command line via grunt! Let's see how an end-user would consume our new library.
 
 #### Long options
 
+You can specify any long option under options with a corresponding value.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    shazzam: {
       options: {
         foo: 'bar'
       }
@@ -47,14 +53,16 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target --foo bar`
+This will run `blerg shazzam --foo bar`.
 
 #### Multi-word options
 
+Multi-word options work too.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    awesome: {
       options: {
         fooBar: 'baz'
       }
@@ -63,30 +71,34 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target --foo-bar baz`
+This will run `blerg awesome --foo-bar baz`. Note the camel-casing for options with hyphens.
 
 #### Boolean options
 
+But not all options have values. `blerg`, for example, has that super-user `--banana` option.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    jazzhands: {
       options: {
-        foo: true
+        banana: true
       }
     }
   }
 });
 ```
 
-This will run `cli target --foo`
+This will run `blerg jazzhands --banana`.
 
 #### Short options
 
+You can also use short options.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    wasabi: {
       options: {
         a: 'foo'
       }
@@ -95,14 +107,16 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target -a foo`
+This will run `blerg wasabi -a foo`.
 
 #### Short boolean options
 
+And short options as booleans.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    hashbang: {
       options: {
         a: true
       }
@@ -111,62 +125,48 @@ grunt.initConfig({
 });
 ```
 
-This will run `cli target -a`
-
-#### Multiple short options grouped together
-
-```js
-grunt.initConfig({
-  cli: {
-    target: {
-      options: {
-        a: true,
-        b: true,
-        c: 'foo'
-      }
-    }
-  }
-});
-```
-
-This will run `cli target -ab -c foo`
+This will run `blerg hashbang -a`.
 
 #### Options with equal signs
 
+Some libraries have weird "="-style options. Like git. And blerg.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    nafblat: {
       options: {
-        'author=': 'tandrewnichols'
+        'bloogs=': 'meep'
       }
     }
   }
 });
 ```
 
-This will run `cli target --author=tandrewnichols`
+This will run `blerg nafblat --bloogs=meep`.
 
 #### Arrays of options
 
+You can also specify the same option more than once by passing an array.
+
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    murica: {
       options: {
         a: ['foo', 'bar'],
-        greeting: ['hello', 'goodbye']
+        fruit: ['banana', 'kiwi']
       }
     }
   }
 });
 ```
 
-This will run `cli target -a foo -a bar --greeting hello --greeting goodbye`
+This will run `blerg murica -a foo -a bar --fruit banana --fruit kiwi`.
 
 ## Simple cli options
 
-Options about how simple cli itself behaves are placed under the `simple` key.
+There are also some library specific options. Options about how simple cli itself behaves are placed under the `simple` key.
 
 #### env
 
@@ -174,8 +174,8 @@ Supply additional environment variables to the child process.
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    hoodoo: {
       options: {
         simple: {
           env: {
@@ -188,14 +188,16 @@ grunt.initConfig({
 });
 ```
 
+Like running `FOO=bar blerg hoodoo`.
+
 #### cwd
 
 Set the current working directory for the child process.
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    jackwagon: {
       options: {
         simple: {
           cwd: './test'
@@ -206,14 +208,16 @@ grunt.initConfig({
 });
 ```
 
+Runs `blerg jackwagon`, but in the `./test` directory.
+
 #### force
 
-If the task fails, don't halt the entire task chain.
+If the task fails, don't halt the entire task chain. Note that this is different that grunt's own `force` option. Really all this does is consume any error thrown . . . and simply ignore it.
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    muncher: {
       options: {
         simple: {
           force: true
@@ -230,15 +234,15 @@ A callback to handle the stdout and stderr streams. `simple-cli` aggregates the 
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    portmanteau: {
       options: {
         simple: {
           onComplete: function(err, stdout, callback) {
             if (err) {
               grunt.fail.fatal(err.message, err.code);
             } else {
-              grunt.config.set('cli output', stdout);
+              grunt.config.set('portmanteau', stdout);
               callback();
             }
           });
@@ -281,7 +285,7 @@ Running `grunt git:pushOrigin` will run `git push origin master` and running `gr
 
 #### args
 
-Additional, non-flag arguments to pass to the executable. These can be passed as an array (as in `git:pushOrigin` above) or as a single string with arguments separated by a space (as in `git:pushHeroku` above).
+Additional, non-flag arguments to pass to the executable. These can be passed as an array (as in `git:pushOrigin` above) or as a single string with arguments separated by a space (as in `git:pushHeroku` above). Note that, if you need to use spaces inside an argument, you will need to use the array syntax, since `simple-cli` will split a string on spaces.
 
 #### rawArgs
 
@@ -308,24 +312,25 @@ Similar to `--dry-run` in many executables. This will log the command that will 
 
 ```js
 grunt.initConfig({
-  cli: {
-    target: {
+  blerg: {
+    'waffle-iron': {
       options: {
         simple: {
           // Invoked with default fake stderr/stdout
           onComplete: function(err, stdout, callback) {
-            console.log(arguments);
+            console.log(err.message, stdout);
+            callback();
           },
           debug: true
         }
       }
     },
-    target2: {
+    'wilty-salad': {
       options: {
         simple: {
-          // Invoked with 'foo' and 'bar'
           onComplete: function(err, stdout, callback) {
-            console.log(arguments);
+            console.log(err.message, stdout); // Logs 'foo bar'
+            callback();
           },
           debug: {
             stderr: 'foo',
@@ -338,7 +343,7 @@ grunt.initConfig({
 });
 ```
 
-Additionally, you can pass the `--debug` option to grunt itself to enable the above behavior in an ad hoc manner.
+Additionally, you can pass the `--debug` option to grunt itself to enable the above behavior in an ad hoc manner (e.g. `grunt blerg:wilty-salad --debug`).
 
 ## Dynamic values
 
@@ -389,75 +394,6 @@ grunt.initConfig({
 
 and automate commits, while still supplying an accurate commit message.
 
-## Invoking simple cli
-
-To setup the wrapper for an executable, invoke `require('simple-cli').spawn`. There are two required parameters, `grunt` and `this` (the context of the task). So the simplest invocation looks like:
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  cli.spawn(grunt, this);
-});
-```
-
-Additionally, however, you can pass the following parameters to customize the tool for your particular wrapper:
-
-#### options
-
-The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed under `options.simple` and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  cli.spawn(grunt, this, {
-    moreCowbell: function(val, config, cb) {
-      // I've got a fever...
-    }
-  });
-});
-```
-
-The handlers for custom opts are called immediately before the child process is spawned (so all the arguments have already been aggregated and put in the right form). The parameters passed to the handler are the value supplied by the user, an object containing all possible arguments for the child process, and a callback. The config object has the following keys:
-
-* cmd - The executable
-* target - The sub-command on the executable
-* args - Everything from `options.simple.args` first, followed by all the flags passed under options
-* rawArgs - Same as `options.simple.rawArgs`
-* options - The options passed to the child process (including `cwd` and `env`)
-
-#### cmd
-
-`simple-cli` assumes that the executable being wrapped is also the name of the grunt task. If, for some reason, this is not the case, you can pass the actual executable name to `spawn`:
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  // Invokes the executable "foobar" NOT "foo"
-  cli.spawn(grunt, this, 'foobar');
-});
-```
-
-#### callback
-
-`simple-cli` will use the grunt async callback as it's final callback, unless one is supplied. If you supply one, however, you must manage the async task yourself.
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  var done = this.async();
-  cli.spawn(grunt, this, function(){
-    // Do other stuff
-
-    // Call done so that grunt knows to run the next task
-    done();
-  });
-});
-```
-
 ## Shortcut configurations
 
 For very simple tasks, you can define the task body as an array or string, rather than as an object, as all the above examples have been.
@@ -472,3 +408,130 @@ grunt.initConfig({
     upstream: 'pull upstream master'
   }
 });
+```
+
+## Invoking simple cli
+
+To setup the wrapper for an executable, require `simple-cli` and invoke the returned function.
+
+```js
+var cli = require('simple-cli');
+
+module.exports = cli('executable');
+```
+
+If you need finer controller, you can pass a configuration object instead of a string. The available parameters are below.
+
+### task
+
+Required.
+
+This is the task name to pass to `grunt.registerMultiTask`.
+
+```js
+var cli = require('simple-cli');
+
+// If you're doing ONLY this, you're better to just do "cli('bar')"
+module.exports = cli({
+  task: 'bar'
+});
+```
+
+### description
+
+Optional.
+
+A description to pass to `grunt.registerMultiTask`. If none is provided, `simple-cli` will build one for you based on the executable being wrapped.
+
+```js
+var cli = require('simple-cli');
+
+module.exports = cli({
+  task: 'foo',
+  description: 'Do some foo! With authority.'
+});
+```
+
+### cmd
+
+Optional.
+
+The executable to run if different from the task. This can be useful for wrapping node.js binaries that you want to include as dependencies. Just set cmd equal to path to the local executable, e.g. `<absolute_path>/node_modules/.bin/blah`. Alternatively, you could use this as an alias if the executable is long and tedious to type (like "codeclimate-test-reporter").
+
+```js
+var cli = require('simple-cli');
+var path = require('path');
+
+module.exports = cli({
+  task: 'foo',
+  cmd: path.resolve(__dirname, '../node_modules/.bin/foo')
+});
+```
+
+### singleDash
+
+Optional.
+
+Set to true for executables that use a `find` style syntax, i.e. a single dash prefix for parameters: `find . -name foo`
+
+```js
+var cli = require('simple-cli');
+
+module.exports = cli({
+  task: 'foo',
+  singleDash: true
+});
+```
+
+### callback
+
+Optional.
+
+A function to call after executing the child process. If omitted, this simply calls grunt's `this.async()` method to trigger the task completion. If you supply this, you will have to call that method yourself. It will be set on the context within the function as `done`, and, as always with grunt, calling it with a code will fail the task.
+
+```js
+var cli = require('simple-cil');
+
+module.exports = cli({
+  task: 'bar',
+  callback: function() {
+    // Do whatever...
+    this.done();
+  }
+});
+```
+
+Other properties available on the `this` object within this method are:
+
+* this.grunt -> the grunt object
+* this.context -> the grunt task context
+* this.cmd -> the command executed via child process
+* this.options -> the task options
+* this.config -> the task configuration (i.e. `options.simple` under the task options)
+* this.customOptions -> custom options parsers provided by your wrapper
+* this.env -> environment variables to supply to the child process
+* this.target -> the command to run on the executable (e.g. "commit" in "git commit")
+* this.args -> the full array of command line args supplied to the executable
+* this.debugOn -> whether the task is running debug mode
+
+### options
+
+Optional.
+
+The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed under `options.simple` and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
+
+```js
+var cli = require('simple-cil');
+
+module.exports = cli({
+  task: 'foo',
+  options: {
+    moreCowbell: function(val, cb) {
+      // I've got a fever...
+      cb();
+    }
+  }
+});
+```
+
+The handlers for custom opts are called immediately before the child process is spawned (so all the arguments have already been aggregated and put in the right form). The parameters passed to the handler are the value supplied by the user and a callback. The context within the function is the simple-cli context, the same as in the `callback` option above.

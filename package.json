@@ -2,7 +2,7 @@
   "name": "simple-cli",
   "version": "1.0.1",
   "description": "A simple wrapper for grunt implementations of command line APIs",
-  "main": "lib/index.js",
+  "main": "lib/simple-cli.js",
   "scripts": {
     "test": "grunt"
   },
@@ -29,34 +29,30 @@
     "url": "https://github.com/tandrewnichols/simple-cli/issues"
   },
   "devDependencies": {
-    "coffee-script": "^1.9.0",
+    "coffee-script": "^1.9.3",
     "grunt": "^0.4.5",
-    "grunt-contrib-jshint": "^0.11.0",
-    "grunt-mocha-cov": "^0.3.0",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-contrib-watch": "^0.6.1",
     "grunt-mocha-test": "^0.12.7",
-    "grunt-travis-matrix": "0.0.4",
+    "grunt-open": "^0.2.3",
+    "grunt-simple-istanbul": "0.0.1",
+    "grunt-travis-matrix": "0.0.5",
     "indeed": "^1.0.6",
-    "jshint-stylish": "^1.0.0",
-    "mocha": "^2.1.0",
+    "jshint-stylish": "^2.0.1",
+    "mocha": "^2.2.5",
     "mocha-given": "^0.1.3",
-    "mocha-lcov-reporter": "0.0.1",
-    "proxyquire": "^1.3.1",
-    "sinon": "^1.12.2"
+    "proxyquire": "^1.6.0",
+    "sinon": "^1.15.4"
   },
   "dependencies": {
-    "async": "^0.9.0",
-    "chalk": "^0.5.1",
-    "config-extend": "0.0.7",
-    "key-list": "^0.1.1",
-    "lodash": "^3.1.0",
-    "underscore.string": "^3.0.2",
-    "varity": "^1.0.3"
-  },
-  "config": {
-    "blanket": {
-      "pattern": [
-        "simple-cli/lib"
-      ]
-    }
+    "async": "^1.4.0",
+    "chalk": "^1.1.0",
+    "config-extend": "^0.1.0",
+    "key-list": "^0.1.3",
+    "lodash": "^3.10.0",
+    "opted": "^1.0.0",
+    "underscore.string": "^3.1.1",
+    "win-spawn": "^2.0.0"
   }
 }

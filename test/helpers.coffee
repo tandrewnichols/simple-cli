@@ -4,7 +4,7 @@ global.sandbox = require 'proxyquire'
 _ = require 'lodash'
 
 global.spyObj = (fns...) ->
-  _(fns).reduce (obj, fn) ->
+  _.reduce fns, (obj, fn) ->
     obj[fn] = sinon.stub()
     obj
   , {}
