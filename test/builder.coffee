@@ -277,7 +277,8 @@ describe 'builder', ->
           foo: sinon.stub()
       Given -> @cb = sinon.stub()
       When -> @Builder.prototype.handleCustomOption.call @context, 'foo', @cb
-      Then -> expect(@context.customOptions.foo).to.have.been.calledWith 'bar', @context, @cb
+      Then -> expect(@context.customOptions.foo).to.have.been.calledWith 'bar', @cb
+      And -> expect(@context.customOptions.foo).to.have.been.calledOn @context
 
     context 'with no option', ->
       Given -> @context =

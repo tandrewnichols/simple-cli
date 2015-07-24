@@ -129,6 +129,17 @@ describe 'integration', ->
     And -> @stdout = @stdout.split('\n')[1]
     Then -> expect(@stdout).to.equal 'dash -foo bar'
 
+  context 'description', ->
+    When -> @child = spawn 'grunt', ['--help']
+    And (done) ->
+      @child.stdout.on 'data', (data) => @stdout += data.toString()
+      @child.on 'close', -> done()
+    # Grunt help output is especially annoying to parse and match against
+    And -> @stdout = @stdout.split('\n').map( (line) ->
+      return line.trim()
+    ).join('|')
+    Then -> expect(@stdout).to.match "opts-test  A simple-cli grunt wrapper for|#{__dirname}/fixtures/tes|t.js"
+
   context 'callback', ->
     When -> @child = spawn 'grunt', ['callback-test:cb', '--no-color']
     And (done) ->

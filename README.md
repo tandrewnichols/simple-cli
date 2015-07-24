@@ -394,75 +394,6 @@ grunt.initConfig({
 
 and automate commits, while still supplying an accurate commit message.
 
-## Invoking simple cli
-
-To setup the wrapper for an executable, invoke `require('simple-cli').spawn`. There are two required parameters, `grunt` and `this` (the context of the task). So the simplest invocation looks like:
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  cli.spawn(grunt, this);
-});
-```
-
-Additionally, however, you can pass the following parameters to customize the tool for your particular wrapper:
-
-#### options
-
-The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed under `options.simple` and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  cli.spawn(grunt, this, {
-    moreCowbell: function(val, config, cb) {
-      // I've got a fever...
-    }
-  });
-});
-```
-
-The handlers for custom opts are called immediately before the child process is spawned (so all the arguments have already been aggregated and put in the right form). The parameters passed to the handler are the value supplied by the user, an object containing all possible arguments for the child process, and a callback. The config object has the following keys:
-
-* cmd - The executable
-* target - The sub-command on the executable
-* args - Everything from `options.simple.args` first, followed by all the flags passed under options
-* rawArgs - Same as `options.simple.rawArgs`
-* options - The options passed to the child process (including `cwd` and `env`)
-
-#### cmd
-
-`simple-cli` assumes that the executable being wrapped is also the name of the grunt task. If, for some reason, this is not the case, you can pass the actual executable name to `spawn`:
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  // Invokes the executable "foobar" NOT "foo"
-  cli.spawn(grunt, this, 'foobar');
-});
-```
-
-#### callback
-
-`simple-cli` will use the grunt async callback as it's final callback, unless one is supplied. If you supply one, however, you must manage the async task yourself.
-
-```js
-var cli = require('simple-cil');
-
-grunt.registerMultiTask('foo', 'Wraps the foo executable', function() {
-  var done = this.async();
-  cli.spawn(grunt, this, function(){
-    // Do other stuff
-
-    // Call done so that grunt knows to run the next task
-    done();
-  });
-});
-```
-
 ## Shortcut configurations
 
 For very simple tasks, you can define the task body as an array or string, rather than as an object, as all the above examples have been.
@@ -477,3 +408,130 @@ grunt.initConfig({
     upstream: 'pull upstream master'
   }
 });
+```
+
+## Invoking simple cli
+
+To setup the wrapper for an executable, require `simple-cli` and invoke the returned function.
+
+```js
+var cli = require('simple-cli');
+
+module.exports = cli('executable');
+```
+
+If you need finer controller, you can pass a configuration object instead of a string. The available parameters are below.
+
+### task
+
+Required.
+
+This is the task name to pass to `grunt.registerMultiTask`.
+
+```js
+var cli = require('simple-cli');
+
+// If you're doing ONLY this, you're better to just do "cli('bar')"
+module.exports = cli({
+  task: 'bar'
+});
+```
+
+### description
+
+Optional.
+
+A description to pass to `grunt.registerMultiTask`. If none is provided, `simple-cli` will build one for you based on the executable being wrapped.
+
+```js
+var cli = require('simple-cli');
+
+module.exports = cli({
+  task: 'foo',
+  description: 'Do some foo! With authority.'
+});
+```
+
+### cmd
+
+Optional.
+
+The executable to run if different from the task. This can be useful for wrapping node.js binaries that you want to include as dependencies. Just set cmd equal to path to the local executable, e.g. `<absolute_path>/node_modules/.bin/blah`. Alternatively, you could use this as an alias if the executable is long and tedious to type (like "codeclimate-test-reporter").
+
+```js
+var cli = require('simple-cli');
+var path = require('path');
+
+module.exports = cli({
+  task: 'foo',
+  cmd: path.resolve(__dirname, '../node_modules/.bin/foo')
+});
+```
+
+### singleDash
+
+Optional.
+
+Set to true for executables that use a `find` style syntax, i.e. a single dash prefix for parameters: `find . -name foo`
+
+```js
+var cli = require('simple-cli');
+
+module.exports = cli({
+  task: 'foo',
+  singleDash: true
+});
+```
+
+### callback
+
+Optional.
+
+A function to call after executing the child process. If omitted, this simply calls grunt's `this.async()` method to trigger the task completion. If you supply this, you will have to call that method yourself. It will be set on the context within the function as `done`, and, as always with grunt, calling it with a code will fail the task.
+
+```js
+var cli = require('simple-cil');
+
+module.exports = cli({
+  task: 'bar',
+  callback: function() {
+    // Do whatever...
+    this.done();
+  }
+});
+```
+
+Other properties available on the `this` object within this method are:
+
+* this.grunt -> the grunt object
+* this.context -> the grunt task context
+* this.cmd -> the command executed via child process
+* this.options -> the task options
+* this.config -> the task configuration (i.e. `options.simple` under the task options)
+* this.customOptions -> custom options parsers provided by your wrapper
+* this.env -> environment variables to supply to the child process
+* this.target -> the command to run on the executable (e.g. "commit" in "git commit")
+* this.args -> the full array of command line args supplied to the executable
+* this.debugOn -> whether the task is running debug mode
+
+### options
+
+Optional.
+
+The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed under `options.simple` and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
+
+```js
+var cli = require('simple-cil');
+
+module.exports = cli({
+  task: 'foo',
+  options: {
+    moreCowbell: function(val, cb) {
+      // I've got a fever...
+      cb();
+    }
+  }
+});
+```
+
+The handlers for custom opts are called immediately before the child process is spawned (so all the arguments have already been aggregated and put in the right form). The parameters passed to the handler are the value supplied by the user and a callback. The context within the function is the simple-cli context, the same as in the `callback` option above.
