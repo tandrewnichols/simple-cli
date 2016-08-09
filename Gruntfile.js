@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-travis-matrix');
   grunt.loadNpmTasks('grunt-simple-istanbul');
   grunt.loadNpmTasks('grunt-open');
+  grunt.loadNpmTasks('grunt-shell');
   grunt.loadTasks('test/fixtures/tasks');
 
   var onComplete = function(err, stdout, done) {
@@ -37,7 +38,8 @@ module.exports = function(grunt) {
       options: {
         reporter: 'spec',
         ui: 'mocha-given',
-        require: 'coffee-script/register'
+        require: 'coffee-script/register',
+        timeout: 3000
       },
       unit: {
         src: ['test/helpers.coffee', 'test/**/*.coffee', '!test/integration.coffee']
@@ -46,17 +48,16 @@ module.exports = function(grunt) {
         src: ['test/helpers.coffee', 'test/integration.coffee']
       }
     },
-    travis: {
-      options: {
-        targets: {
-          test: '{{ version }}',
-          when: 'v0.12',
-          tasks: ['istanbul', 'matrix:v0.12']
-        }
+    travisMatrix: {
+      v4: {
+        test: function() {
+          return /^v4/.test(process.version);
+        },
+        tasks: ['istanbul:cover', 'shell:codeclimate']
       }
     },
-    matrix: {
-      'v0.12': 'codeclimate-test-reporter < coverage/lcov.info'
+    shell: {
+      codeclimate: 'codeclimate-test-reporter < coverage/lcov.info'
     },
     watch: {
       tests: {
@@ -68,13 +69,15 @@ module.exports = function(grunt) {
       }
     },
     istanbul: {
-      unit: {
+      cover: {
         options: {
           root: 'lib',
-          dir: 'coverage'
-        },
-        cmd: 'cover grunt mochaTest:unit'
-      },
+          dir: 'coverage',
+          simple: {
+            args: ['grunt', 'mochaTest:unit']
+          }
+        }
+      }
     },
 
     // Test commands
@@ -170,6 +173,15 @@ module.exports = function(grunt) {
           },
           foo: '{{ foo }}'
         }
+      },
+      'dynamic-nested': {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            args: ['{{ hello.world }}']
+          },
+          foo: '{{ foo }}'
+        }
       }
     },
     proxy: {},
@@ -205,5 +217,5 @@ module.exports = function(grunt) {
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('default', ['jshint:all', 'mocha']);
   grunt.registerTask('coverage', ['istanbul']);
-  grunt.registerTask('ci', ['jshint:all', 'mocha', 'travis']);
+  grunt.registerTask('ci', ['jshint:all', 'mocha', 'travisMatrix']);
 };

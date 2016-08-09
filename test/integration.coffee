@@ -89,7 +89,7 @@ describe 'integration', ->
 
   context 'dynamic values', ->
     context 'cli', ->
-      When -> @child = spawn 'grunt', ['simple-test:dynamic', '--no-color', '--foo', 'bar']
+      When -> @child = spawn 'grunt', ['simple-test:dynamic', '--no-color', '--foo=bar']
       And (done) ->
         @child.stdout.on 'data', (data) => @stdout += data.toString()
         @child.on 'close', -> done()
@@ -97,12 +97,12 @@ describe 'integration', ->
       Then -> expect(@stdout).to.equal 'dynamic --foo bar'
       
     context 'config', ->
-      When -> @child = spawn 'grunt', ['proxy', 'simple-test:dynamic', '--no-color']
+      When -> @child = spawn 'grunt', ['proxy', 'simple-test:dynamic-nested', '--no-color']
       And (done) ->
         @child.stdout.on 'data', (data) => @stdout += data.toString()
         @child.on 'close', -> done()
       And -> @stdout = @stdout.split('\n')[3]
-      Then -> expect(@stdout).to.equal 'dynamic --foo baz'
+      Then -> expect(@stdout).to.equal 'dynamic-nested quux --foo baz'
 
     context 'prompt', ->
       When -> @child = spawn 'grunt', ['simple-test:dynamic', '--no-color']
