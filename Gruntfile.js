@@ -53,12 +53,11 @@ module.exports = function(grunt) {
         test: function() {
           return /^v4/.test(process.version);
         },
-        tasks: ['shell:ls', 'istanbul:cover', 'shell:codeclimate']
+        tasks: ['istanbul:cover', 'shell:codeclimate']
       }
     },
     shell: {
-      codeclimate: 'codeclimate-test-reporter < coverage/lcov.info',
-      ls: 'ls node_modules/.bin'
+      codeclimate: 'codeclimate-test-reporter < coverage/lcov.info'
     },
     watch: {
       tests: {
@@ -75,7 +74,7 @@ module.exports = function(grunt) {
           root: 'lib',
           dir: 'coverage',
           simple: {
-            args: ['grunt mochaTest:unit']
+            args: ['grunt', 'mochaTest:unit']
           }
         }
       }
