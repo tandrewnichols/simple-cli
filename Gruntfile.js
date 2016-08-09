@@ -214,5 +214,5 @@ module.exports = function(grunt) {
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('default', ['jshint:all', 'mocha']);
   grunt.registerTask('coverage', ['istanbul']);
-  grunt.registerTask('ci', ['jshint:all', 'mocha', 'travis']);
+  grunt.registerTask('ci', ['jshint:all', 'mocha', 'travisMatrix']);
 };
