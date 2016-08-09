@@ -53,7 +53,7 @@ module.exports = function(grunt) {
         test: function() {
           return /^v4/.test(process.version);
         },
-        tasks: ['shell:codeclimate']
+        tasks: ['istanbul:cover', 'shell:codeclimate']
       }
     },
     shell: {
@@ -69,13 +69,15 @@ module.exports = function(grunt) {
       }
     },
     istanbul: {
-      unit: {
+      cover: {
         options: {
           root: 'lib',
-          dir: 'coverage'
-        },
-        cmd: 'cover grunt mochaTest:unit'
-      },
+          dir: 'coverage',
+          simple: {
+            args: ['grunt mochaTest:unit']
+          }
+        }
+      }
     },
 
     // Test commands
