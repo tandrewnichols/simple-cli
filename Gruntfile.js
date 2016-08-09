@@ -38,7 +38,8 @@ module.exports = function(grunt) {
       options: {
         reporter: 'spec',
         ui: 'mocha-given',
-        require: 'coffee-script/register'
+        require: 'coffee-script/register',
+        timeout: 3000
       },
       unit: {
         src: ['test/helpers.coffee', 'test/**/*.coffee', '!test/integration.coffee']
