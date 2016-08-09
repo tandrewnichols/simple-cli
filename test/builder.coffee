@@ -250,11 +250,14 @@ describe 'builder', ->
           get: sinon.stub()
     Given -> @context.grunt.option.withArgs('foo').returns 'banana'
     Given -> @context.grunt.config.get.withArgs('bar').returns 'kiwi'
-    When -> @obj = @Builder.prototype.populateFromGrunt.call @context, ['foo', 'bar', 'baz']
+    Given -> @context.grunt.config.get.withArgs('hello.world').returns 'blah'
+    When -> @obj = @Builder.prototype.populateFromGrunt.call @context, ['foo', 'bar', 'baz', 'hello.world']
     Then -> expect(@obj).to.deep.equal
       foo: 'banana'
       bar: 'kiwi'
       baz: null
+      hello:
+        world: 'blah'
 
   describe '.template', ->
     Given -> @context = {}

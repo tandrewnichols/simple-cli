@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-travis-matrix');
   grunt.loadNpmTasks('grunt-simple-istanbul');
   grunt.loadNpmTasks('grunt-open');
+  grunt.loadNpmTasks('grunt-shell');
   grunt.loadTasks('test/fixtures/tasks');
 
   var onComplete = function(err, stdout, done) {
@@ -46,17 +47,16 @@ module.exports = function(grunt) {
         src: ['test/helpers.coffee', 'test/integration.coffee']
       }
     },
-    travis: {
-      options: {
-        targets: {
-          test: '{{ version }}',
-          when: 'v0.12',
-          tasks: ['istanbul', 'matrix:v0.12']
-        }
+    travisMatrix: {
+      v4: {
+        test: function() {
+          return /^v4/.test(process.version);
+        },
+        tasks: ['shell:codeclimate']
       }
     },
-    matrix: {
-      'v0.12': 'codeclimate-test-reporter < coverage/lcov.info'
+    shell: {
+      codeclimate: 'codeclimate-test-reporter < coverage/lcov.info'
     },
     watch: {
       tests: {
@@ -167,6 +167,15 @@ module.exports = function(grunt) {
         options: {
           simple: {
             onComplete: onComplete
+          },
+          foo: '{{ foo }}'
+        }
+      },
+      'dynamic-nested': {
+        options: {
+          simple: {
+            onComplete: onComplete,
+            args: ['{{ hello.world }}']
           },
           foo: '{{ foo }}'
         }
