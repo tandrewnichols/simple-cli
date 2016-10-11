@@ -168,9 +168,9 @@ This will run `blerg murica -a foo -a bar --fruit banana --fruit kiwi`.
 
 There are also some library specific options. Options about how simple cli itself behaves are placed under the `simple` key.
 
-#### inherit
+#### quiet
 
-Default: `true`. Set to false to prevent logging during the process. Regardless of the value of this flag, all stdout and stderr will be collected and passed to [onComplete](#onComplete). However, if it is `true`, it will _also_ be logged as the process runs (similar to how `stdio: 'inherit'` works with `child_process.spawn`).
+Set to true to prevent logging during the child process. Regardless of the value of this flag, all stdout and stderr will be collected and passed to [onComplete](#onComplete). However, if it is not `true`, it will _also_ be logged as the process runs (similar to how `stdio: 'inherit'` works with `child_process.spawn`).
 
 ```js
 grunt.initConfig({

@@ -29,7 +29,6 @@ describe 'builder', ->
         args: []
         rawArgs: []
         env: {}
-        inherit: true
     ).returns
       simple:
         debug: true
@@ -41,8 +40,6 @@ describe 'builder', ->
     context 'options.cmd', ->
       Given -> @env = process.env
       Given -> @env.HELLO = 'world'
-      # For some reason, asserting that @builder.env is deep equal to @env fails,
-      # but ONLY on iojs. Stringifying and parsing both makes it pass. Alas.
       Given -> @env = JSON.parse(JSON.stringify(@env))
       When -> @builder = new @Builder @options, @context, @grunt
       And -> @builderEnv = JSON.parse(JSON.stringify(@builder.env))
@@ -385,7 +382,6 @@ describe 'builder', ->
       config:
         cwd: 'cwd'
         onComplete: true
-        inherit: true
       grunt:
         log:
           writeln: sinon.stub()

@@ -145,5 +145,5 @@ describe 'integration', ->
     And (done) ->
       @child.stdout.on 'data', (data) => @stdout += data.toString()
       @child.on 'close', -> done()
-    And -> @stdout = @stdout.split('\n')[3]
-    Then -> expect(@stdout).to.equal 'Builder'
+    And -> @stdout = @stdout.split('\n')[4]
+    Then -> expect(@stdout).to.contain 'Builder'
