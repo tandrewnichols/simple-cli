@@ -382,10 +382,10 @@ describe 'builder', ->
       target: 'target'
       args: ['foo', 'bar']
       env: 'env'
-      inherit: true
       config:
         cwd: 'cwd'
         onComplete: true
+        inherit: true
       grunt:
         log:
           writeln: sinon.stub()
