@@ -24,7 +24,13 @@ describe 'builder', ->
       async: sinon.stub()
     Given -> @grunt =
       option: sinon.stub()
-    Given -> @context.options.returns
+    Given -> @context.options.withArgs(
+      simple:
+        args: []
+        rawArgs: []
+        env: {}
+        inherit: true
+    ).returns
       simple:
         debug: true
         env:
@@ -376,6 +382,7 @@ describe 'builder', ->
       target: 'target'
       args: ['foo', 'bar']
       env: 'env'
+      inherit: true
       config:
         cwd: 'cwd'
         onComplete: true

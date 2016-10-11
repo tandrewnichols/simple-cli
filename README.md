@@ -168,6 +168,24 @@ This will run `blerg murica -a foo -a bar --fruit banana --fruit kiwi`.
 
 There are also some library specific options. Options about how simple cli itself behaves are placed under the `simple` key.
 
+#### inherit
+
+Default: `true`. Set to false to prevent logging during the process. Regardless of the value of this flag, all stdout and stderr will be collected and passed to [onComplete](#onComplete). However, if it is `true`, it will _also_ be logged as the process runs (similar to how `stdio: 'inherit'` works with `child_process.spawn`).
+
+```js
+grunt.initConfig({
+  blerg: {
+    lollipop: {
+      options: {
+        simple: {
+          inherit: false
+        }
+      }
+    }
+  }
+});
+```
+
 #### env
 
 Supply additional environment variables to the child process.
