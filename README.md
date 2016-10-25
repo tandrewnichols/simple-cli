@@ -178,7 +178,7 @@ grunt.initConfig({
     lollipop: {
       options: {
         simple: {
-          inherit: false
+          quiet: true
         }
       }
     }
