@@ -12,105 +12,122 @@ describe 'builder', ->
     async: @async
 
   describe 'constructor', ->
+    Given -> sinon.stub(@Builder.prototype, 'setConfig', ->
+      @config =
+        debug: 'config debug'
+        env:
+          foo: 'bar'
+    )
+    Given -> @optStub = sinon.stub()
+    Given -> @optStub.withArgs({}).returns 'options'
     Given -> @options =
-      cmd: 'cmd'
-      task: 'task'
-      callback:
-        bind: sinon.stub()
-      options: 'options'
-    Given -> @options.callback.bind.returns 'bound'
+      singleDash: true
+      options: 'options!'
     Given -> @context =
-      options: sinon.stub()
-      async: sinon.stub()
+      async: -> 'done'
+      options: @optStub
     Given -> @grunt =
       option: sinon.stub()
-    Given -> @context.options.withArgs(
-      simple:
-        args: []
-        rawArgs: []
-        env: {}
-    ).returns
-      simple:
-        debug: true
-        env:
-          HELLO: 'world'
-      foo: 'bar'
-    Given -> @context.async.returns 'async'
 
-    context 'options.cmd', ->
-      Given -> @env = process.env
-      Given -> @env.HELLO = 'world'
-      Given -> @env = JSON.parse(JSON.stringify(@env))
-      When -> @builder = new @Builder @options, @context, @grunt
-      And -> @builderEnv = JSON.parse(JSON.stringify(@builder.env))
-      Then -> expect(@builder.cmd).to.equal 'cmd'
-      And -> expect(@builder.callback).to.equal 'bound'
-      And -> expect(@builder.done).to.equal 'async'
-      And -> expect(@builder.options).to.deep.equal foo: 'bar'
-      And -> expect(@builder.config).to.deep.equal
-        debug: true
-        env:
-          HELLO: 'world'
-      And -> expect(@builder.debugOn).to.be.true()
-      And -> expect(@builder.context).to.equal @context
-      And -> expect(@builder.grunt).to.equal @grunt
-      And -> expect(@builder.customOptions).to.equal 'options'
-      And -> expect(@builderEnv).to.deep.equal @env
+    context 'with options.cmd', ->
+      Given -> @options.cmd = 'cmd'
+      When -> @builder = new @Builder(@options, @context, @grunt)
+      Then ->
+        expect(@builder.cmd).to.equal 'cmd'
+        expect(@builder.singleDash).to.equal true
+        expect(@builder.done).to.equal 'done'
+        expect(@builder.callback).to.equal 'done'
+        expect(@builder.options).to.equal 'options'
+        expect(@builder.context).to.equal @context
+        expect(@builder.setConfig.calledWith(@context)).to.be.true()
+        expect(@builder.debugOn).to.equal 'config debug'
+        expect(@builder.grunt).to.equal @grunt
+        expect(@builder.customOptions).to.equal 'options!'
+        expect(@builder.env.foo).to.equal 'bar'
 
-    context 'options.task', ->
-      Given -> delete @options.cmd
-      When -> @builder = new @Builder @options, @context, @grunt
-      Then -> expect(@builder.cmd).to.equal 'task'
+    context 'with options.task', ->
+      Given -> @cb = sinon.stub()
+      Given -> @options.task = 'task'
+      Given -> @options.callback = @cb
+      Given -> @grunt.option.withArgs('debug').returns 'grunt debug'
+      When -> @builder = new @Builder(@options, @context, @grunt)
+      And -> @builder.callback()
+      Then ->
+        expect(@builder.cmd).to.equal 'task'
+        expect(@builder.singleDash).to.equal true
+        expect(@builder.done).to.equal 'done'
+        expect(@cb.called).to.be.true()
+        expect(@builder.options).to.equal 'options'
+        expect(@builder.context).to.equal @context
+        expect(@builder.setConfig.calledWith(@context)).to.be.true()
+        expect(@builder.debugOn).to.equal 'grunt debug'
+        expect(@builder.grunt).to.equal @grunt
+        expect(@builder.customOptions).to.equal 'options!'
+        expect(@builder.env.foo).to.equal 'bar'
 
-    context 'no callback', ->
-      Given -> delete @options.callback
-      When -> @builder = new @Builder @options, @context, @grunt
-      Then -> expect(@builder.done).to.equal 'async'
-      Then -> expect(@builder.callback).to.equal 'async'
+  describe '.setConfig', ->
+    Given -> @self = {}
 
-    context 'grunt.option', ->
-      Given -> @grunt.option.withArgs('debug').returns 'grunt'
-      When -> @builder = new @Builder @options, @context, @grunt
-      Then -> expect(@builder.debugOn).to.equal 'grunt'
+    context 'with an array', ->
+      Given -> @context =
+        data: ['foo', 'bar']
+        target: 'revParse'
+      When -> @Builder.prototype.setConfig.call(@self, @context)
+      Then ->
+        expect(@self.config).to.deep.equal
+          args: ['foo', 'bar']
+          rawArgs: []
+          env: {}
+        expect(@self.target).to.equal 'rev-parse'
 
-  describe '.configure', ->
-    Given -> @context =
-      context:
-        target: 'bananaStand'
-        data: {}
-      config:
-        cmd: 'foo'
+    context 'with a string', ->
+      Given -> @context =
+        data: 'foo bar'
+        target: 'revParse'
+      When -> @Builder.prototype.setConfig.call(@self, @context)
+      Then ->
+        expect(@self.config).to.deep.equal
+          args: ['foo', 'bar']
+          rawArgs: []
+          env: {}
+        expect(@self.target).to.equal 'rev-parse'
 
-    context 'cmd', ->
-      When -> @builder = @Builder.prototype.configure.apply @context
-      Then -> expect(@context.target).to.equal 'foo'
-      And -> expect(@builder).to.equal @context
+    context 'with an object', ->
+      context 'and a cmd', ->
+        Given -> @context =
+          data:
+            options:
+              foo: 'bar'
+            args: ['foo', 'bar']
+            cmd: 'blah'
+          target: 'revParse'
+        When -> @Builder.prototype.setConfig.call(@self, @context)
+        Then ->
+          expect(@self.config).to.deep.equal
+            cmd: 'blah'
+            args: ['foo', 'bar']
+            rawArgs: []
+            env: {}
+          expect(@self.target).to.equal 'blah'
 
-    context 'context.target', ->
-      Given -> delete @context.config.cmd
-      When -> @builder = @Builder.prototype.configure.apply @context
-      Then -> expect(@context.target).to.equal 'banana-stand'
-
-    context 'data is string', ->
-      Given -> @context.context.data = 'git er done'
-      When -> @builder = @Builder.prototype.configure.apply @context
-      Then -> expect(@context.target).to.equal 'git'
-      And -> expect(@context.config.cmd).to.equal 'git'
-      And -> expect(@context.config.args).to.deep.equal ['er', 'done']
-
-    context 'data is array', ->
-      Given -> @context.context.data = ['git', 'er', 'done']
-      When -> @builder = @Builder.prototype.configure.apply @context
-      Then -> expect(@context.target).to.equal 'git'
-      And -> expect(@context.config.cmd).to.equal 'git'
-      And -> expect(@context.config.args).to.deep.equal ['er', 'done']
-
-    context 'args is string', ->
-      Given -> @context.config.args = 'git er done'
-      When -> @builder = @Builder.prototype.configure.apply @context
-      Then -> expect(@context.target).to.equal 'foo'
-      And -> expect(@context.config.cmd).to.equal 'foo'
-      And -> expect(@context.config.args).to.deep.equal ['git', 'er', 'done']
+      context 'and no cmd', ->
+        Given -> @context =
+          data:
+            options:
+              foo: 'bar'
+            args: 'foo bar'
+            env:
+              baz: 'quux'
+          target: 'revParse'
+        When -> @Builder.prototype.setConfig.call(@self, @context)
+        Then ->
+          expect(@self.config).to.deep.equal
+            cmd: null
+            args: ['foo', 'bar']
+            rawArgs: []
+            env:
+              baz: 'quux'
+          expect(@self.target).to.equal 'rev-parse'
 
   describe '.buildOptions', ->
     context 'with no singleDash', ->

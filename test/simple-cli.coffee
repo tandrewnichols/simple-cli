@@ -1,8 +1,7 @@
 describe 'simple cli', ->
   Given -> @Builder = sinon.stub()
   Given -> @Builder.returns
-  Given -> @builder = spyObj 'configure', 'buildOptions', 'getDynamicValues', 'spawn', 'handleCustomOption', 'debug'
-  Given -> @builder.configure.returns @builder
+  Given -> @builder = spyObj 'buildOptions', 'getDynamicValues', 'spawn', 'handleCustomOption', 'debug'
   Given -> @builder.buildOptions.returns @builder
   Given -> @Builder.returns @builder
   Given -> @builder.getDynamicValues.callsArg(0)
