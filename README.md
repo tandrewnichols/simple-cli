@@ -166,7 +166,7 @@ This will run `blerg murica -a foo -a bar --fruit banana --fruit kiwi`.
 
 ## Simple cli options
 
-There are also some library specific options. Options about how simple cli itself behaves are placed under the `simple` key.
+There are also some library specific options. Options about how simple cli itself behaves are placed at the top level of a task target.
 
 #### quiet
 
@@ -177,10 +177,9 @@ grunt.initConfig({
   blerg: {
     lollipop: {
       options: {
-        simple: {
-          quiet: true
-        }
-      }
+        foo: 'bar'
+      },
+      quiet: true
     }
   }
 });
@@ -195,18 +194,17 @@ grunt.initConfig({
   blerg: {
     hoodoo: {
       options: {
-        simple: {
-          env: {
-            FOO: 'bar'
-          }
-        }
+        foo: 'bar'
+      },
+      env: {
+        BANANA: 'yellow'
       }
     }
   }
 });
 ```
 
-Like running `FOO=bar blerg hoodoo`.
+Like running `BANANA=yellow blerg hoodoo --foo bar`.
 
 #### cwd
 
@@ -217,16 +215,15 @@ grunt.initConfig({
   blerg: {
     jackwagon: {
       options: {
-        simple: {
-          cwd: './test'
-        }
-      }
+        foo: 'bar'
+      },
+      cwd: './test'
     }
   }
 });
 ```
 
-Runs `blerg jackwagon`, but in the `./test` directory.
+Runs `blerg jackwagon --foo bar`, but in the `./test` directory.
 
 #### force
 
@@ -236,11 +233,7 @@ If the task fails, don't halt the entire task chain. Note that this is different
 grunt.initConfig({
   blerg: {
     muncher: {
-      options: {
-        simple: {
-          force: true
-        }
-      }
+      force: true
     }
   }
 });
@@ -254,16 +247,12 @@ A callback to handle the stdout and stderr streams. `simple-cli` aggregates the 
 grunt.initConfig({
   blerg: {
     portmanteau: {
-      options: {
-        simple: {
-          onComplete: function(err, stdout, callback) {
-            if (err) {
-              grunt.fail.fatal(err.message, err.code);
-            } else {
-              grunt.config.set('portmanteau', stdout);
-              callback();
-            }
-          });
+      onComplete: function(err, stdout, callback) {
+        if (err) {
+          grunt.fail.fatal(err.message, err.code);
+        } else {
+          grunt.config.set('portmanteau', stdout);
+          callback();
         }
       }
     }
@@ -280,20 +269,12 @@ grunt.initConfig({
   // Using git as a real example
   git: {
     pushOrigin: {
-      options: {
-        simple: {
-          cmd: 'push',
-          args: ['origin', 'master']
-        }
-      }
+      cmd: 'push',
+      args: ['origin', 'master']
     },
     pushHeroku: {
-      options: {
-        simple: {
-          cmd: 'push',
-          args: 'heroku master'
-        }
-      }
+      cmd: 'push',
+      args: 'heroku master'
     }
   }
 });
@@ -307,18 +288,14 @@ Additional, non-flag arguments to pass to the executable. These can be passed as
 
 #### rawArgs
 
-`rawArgs` is a catch all for any arguments to the executable that can't be handled (for whatever reason) with the options above (e.g. the path arguments in some git commands: `git checkout master -- config/production.json`). Anything in `rawArgs` will be concatenated to the end of all the normal args.
+`rawArgs` is a catch all for any arguments to the executable that can't be handled (for whatever reason) with the options above (e.g. the path arguments in some git commands: `git checkout master -- config/production.json`). Anything in `rawArgs` will be concatenated to the end of all the normal args. It can be a string or an array of strings.
 
 ```js
 grunt.initConfig({
   git: {
     checkout: {
-      options: {
-        simple: {
-          args: ['master'],
-          rawArgs: '-- config/production.json'
-        }
-      }
+      args: ['master'],
+      rawArgs: '-- config/production.json'
     }
   }
 });
@@ -332,29 +309,21 @@ Similar to `--dry-run` in many executables. This will log the command that will 
 grunt.initConfig({
   blerg: {
     'waffle-iron': {
-      options: {
-        simple: {
-          // Invoked with default fake stderr/stdout
-          onComplete: function(err, stdout, callback) {
-            console.log(err.message, stdout);
-            callback();
-          },
-          debug: true
-        }
-      }
+      // Invoked with default fake stderr/stdout
+      onComplete: function(err, stdout, callback) {
+        console.log(err.message, stdout);
+        callback();
+      },
+      debug: true
     },
     'wilty-salad': {
-      options: {
-        simple: {
-          onComplete: function(err, stdout, callback) {
-            console.log(err.message, stdout); // Logs 'foo bar'
-            callback();
-          },
-          debug: {
-            stderr: 'foo',
-            stdout: 'bar'
-          }
-        }
+      onComplete: function(err, stdout, callback) {
+        console.log(err.message, stdout); // Logs 'foo bar'
+        callback();
+      },
+      debug: {
+        stderr: 'foo',
+        stdout: 'bar'
       }
     }
   }
@@ -375,14 +344,10 @@ Supply the value when you call the task itself.
 grunt.initConfig({
   git: {
     push: {
-      options: {
-        simple: {
-          // You can also do this as a string, but note that simple-cli splits
-          // string args on space, so you wouldn't be able to put space INSIDE
-          // the interpolation. You'd have to say args: '{{remote}} master'
-          args: ['{{ remote }}', 'master']
-        }
-      }
+      // You can also do this as a string, but note that simple-cli splits
+      // string args on space, so you wouldn't be able to put space INSIDE
+      // the interpolation. You'd have to say args: '{{remote}} master'
+      args: ['{{ remote }}', 'master']
     }
   }
 });
@@ -420,13 +385,15 @@ For very simple tasks, you can define the task body as an array or string, rathe
 grunt.initConfig({
   git: {
     // will invoke "git push origin master"
-    origin: ['push', 'origin', 'master'],
+    push: ['origin', 'master'],
 
     // will invoke "git pull upstream master"
-    upstream: 'pull upstream master'
+    pull: 'upstream master'
   }
 });
 ```
+
+Note that this _only_ works if the target name is the command you want to run. If you need, for example, multiple `push` targets, you'll have to use the longer syntax with `cmd` and `args`.
 
 ## Invoking simple cli
 
@@ -525,7 +492,7 @@ Other properties available on the `this` object within this method are:
 * this.context -> the grunt task context
 * this.cmd -> the command executed via child process
 * this.options -> the task options
-* this.config -> the task configuration (i.e. `options.simple` under the task options)
+* this.config -> the task configuration (e.g. `cmd`, `args`, `rawArgs`, `env`, etc.)
 * this.customOptions -> custom options parsers provided by your wrapper
 * this.env -> environment variables to supply to the child process
 * this.target -> the command to run on the executable (e.g. "commit" in "git commit")
@@ -536,7 +503,7 @@ Other properties available on the `this` object within this method are:
 
 Optional.
 
-The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed under `options.simple` and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
+The options object is actually just a way to extend the `simple-cli` API. Keys in the object are options allowed as part of the task configuration data and the values are the handlers for those options. So if you need more cowbell in your cli wrapper, you can do that:
 
 ```js
 var cli = require('simple-cil');
@@ -545,7 +512,19 @@ module.exports = cli({
   task: 'foo',
   options: {
     moreCowbell: function(val, cb) {
-      // I've got a fever...
+      // val is the user-assigned config value of "moreCowbell," e.g.
+      // grunt.initConfig({
+      //   foo: {
+      //     bar: {
+      //       options: {
+      //         moreCowbell: 'blah'
+      //       }
+      //     }
+      //   }
+      // });
+
+      // Now "this.target" is "halb" . . . probably not that useful, but it's just an example
+      this.target = val.split('').reverse().join('');
       cb();
     }
   }
