@@ -6,7 +6,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-travis-matrix');
   grunt.loadNpmTasks('grunt-simple-istanbul');
   grunt.loadNpmTasks('grunt-open');
-  grunt.loadNpmTasks('grunt-shell');
   grunt.loadTasks('test/fixtures/tasks');
 
   var onComplete = function(err, stdout, done) {
@@ -53,11 +52,8 @@ module.exports = function(grunt) {
         test: function() {
           return /^v4/.test(process.version);
         },
-        tasks: ['istanbul:cover', 'shell:codeclimate']
+        tasks: ['istanbul:cover']
       }
-    },
-    shell: {
-      codeclimate: 'codeclimate-test-reporter < coverage/lcov.info'
     },
     watch: {
       tests: {
@@ -90,126 +86,82 @@ module.exports = function(grunt) {
           negated: false,
           b: 'quux',
           c: true,
-          'author=': 'Andrew',
-          simple: {
-            onComplete: onComplete
-          }
-        }
+          'author=': 'Andrew'
+        },
+        onComplete: onComplete
       },
       env: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            env: {
-              FOO: 'BAR'
-            }
-          }
+        onComplete: onComplete,
+        env: {
+          FOO: 'BAR'
         }
       },
       cwd: {
         options: {
-          simple: {
-            onComplete: onComplete,
-            cwd: __dirname + '/test'
-          },
           cwd: true
-        }
+        },
+        onComplete: onComplete,
+        cwd: __dirname + '/test'
       },
       force: {
         options: {
-          simple: {
-            onComplete: onComplete,
-            force: true
-          },
           fail: true
-        }
+        },
+        onComplete: onComplete,
+        force: true
       },
       cmd: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            cmd: 'not-cmd'
-          }
-        }
+        onComplete: onComplete,
+        cmd: 'not-cmd'
       },
       args: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            args: ['jingle', 'bells']
-          }
-        }
+        onComplete: onComplete,
+        args: ['jingle', 'bells']
       },
       raw: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            rawArgs: '-- $% "hello" '
-          }
-        }
+        onComplete: onComplete,
+        rawArgs: '-- $% "hello" '
       },
       debug: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            debug: true
-          }
-        }
+        onComplete: onComplete,
+        debug: true
       },
       stdout: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            debug: {
-              stdout: 'Hey banana'
-            }
-          }
+        onComplete: onComplete,
+        debug: {
+          stdout: 'Hey banana'
         }
       },
       dynamic: {
         options: {
-          simple: {
-            onComplete: onComplete
-          },
           foo: '{{ foo }}'
-        }
+        },
+        onComplete: onComplete
       },
       'dynamic-nested': {
         options: {
-          simple: {
-            onComplete: onComplete,
-            args: ['{{ hello.world }}']
-          },
           foo: '{{ foo }}'
-        }
+        },
+        onComplete: onComplete,
+        args: ['{{ hello.world }}']
       }
     },
     proxy: {},
     'opts-test': {
       custom: {
-        options: {
-          simple: {
-            onComplete: onComplete,
-            foo: 'Ned'
-          }
-        }
+        onComplete: onComplete,
+        foo: 'Ned'
       },
       dash: {
         options: {
-          simple: {
-            onComplete: onComplete
-          },
           foo: 'bar'
-        }
+        },
+        onComplete: onComplete
       }
     },
     'callback-test': {
       cb: {
-        options: {
-          simple: {
-            onComplete: onComplete
-          }
-        }
+        onComplete: onComplete
       }
     }
   });

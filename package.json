@@ -36,7 +36,6 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-mocha-test": "^0.12.7",
     "grunt-open": "^0.2.3",
-    "grunt-shell": "^1.3.0",
     "grunt-simple-istanbul": "^1.0.1",
     "grunt-travis-matrix": "^1.0.0",
     "indeed": "^1.1.0",
