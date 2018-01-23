@@ -1,19 +1,23 @@
 module.exports = function(grunt) {
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-mocha-test');
-  grunt.loadNpmTasks('grunt-travis-matrix');
-  grunt.loadNpmTasks('grunt-simple-istanbul');
-  grunt.loadNpmTasks('grunt-open');
-  grunt.loadTasks('test/fixtures/tasks');
+  const skipInit = process.argv.includes('--skip-init');
+  if (!skipInit) {
+    grunt.loadNpmTasks('grunt-eslint');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-mocha-test');
+    grunt.loadNpmTasks('grunt-travis-matrix');
+    grunt.loadNpmTasks('grunt-simple-istanbul');
+    grunt.loadNpmTasks('grunt-open');
+  } else {
+    grunt.loadTasks('test/fixtures/tasks');
+  }
 
-  var onComplete = function(err, stdout, done) {
+  const onComplete = function(err, stdout, done) {
     console.log(stdout);
     done();
   };
 
-  grunt.initConfig({
+  const taskConfig = {
     open: {
       coverage: {
         path: 'coverage/lcov-report/index.html'
@@ -22,43 +26,47 @@ module.exports = function(grunt) {
     clean: {
       coverage: 'coverage'
     },
-    jshint: {
-      options: {
-        reporter: require('jshint-stylish'),
-        eqeqeq: true,
-        es3: true,
-        indent: 2,
-        newcap: true,
-        quotmark: 'single'
-      },
-      all: ['lib/*.js']
+    eslint: {
+      lib: {
+        options: {
+          configFile: '.eslint.json',
+          format: 'node_modules/eslint-codeframe-formatter'
+        },
+        src: ['lib/**/*.js']
+      }
     },
     mochaTest: {
       options: {
-        reporter: 'spec',
-        ui: 'mocha-given',
-        require: 'coffee-script/register',
+        reporter: 'list',
+        require: ['should', 'should-sinon'],
         timeout: 3000
       },
       unit: {
-        src: ['test/helpers.coffee', 'test/**/*.coffee', '!test/integration.coffee']
+        src: ['test/**/*.js', '!test/integration.js']
       },
       integration: {
-        src: ['test/helpers.coffee', 'test/integration.coffee']
+        src: ['test/integration.js']
       }
     },
     travisMatrix: {
-      v4: {
+      v8: {
         test: function() {
-          return /^v4/.test(process.version);
+          return /^v8/.test(process.version);
         },
         tasks: ['istanbul:cover']
       }
     },
     watch: {
       tests: {
-        files: ['lib/**/*.js', 'test/**/*.coffee'],
+        files: ['lib/**/*.js', 'test/**/*.js'],
         tasks: ['mocha'],
+        options: {
+          atBegin: true
+        }
+      },
+      unit: {
+        files: ['lib/**/*.js', 'test/**/*.js', '!test/integration.js'],
+        tasks: ['mochaTest:unit'],
         options: {
           atBegin: true
         }
@@ -74,9 +82,10 @@ module.exports = function(grunt) {
           }
         }
       }
-    },
+    }
+  };
 
-    // Test commands
+  const testConfig = {
     'simple-test': {
       opts: {
         options: {
@@ -164,10 +173,14 @@ module.exports = function(grunt) {
         onComplete: onComplete
       }
     }
-  });
+  };
 
-  grunt.registerTask('mocha', ['mochaTest']);
-  grunt.registerTask('default', ['jshint:all', 'mocha']);
-  grunt.registerTask('coverage', ['istanbul']);
-  grunt.registerTask('ci', ['jshint:all', 'mocha', 'travisMatrix']);
+  grunt.initConfig(skipInit ?  testConfig : taskConfig);
+
+  if (!skipInit) {
+    grunt.registerTask('mocha', ['mochaTest']);
+    grunt.registerTask('default', ['eslint:lib', 'mocha']);
+    grunt.registerTask('coverage', ['istanbul']);
+    grunt.registerTask('travis', ['eslint:lib', 'mocha', 'travisMatrix']);
+  }
 };
