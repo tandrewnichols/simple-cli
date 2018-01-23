@@ -34,6 +34,7 @@
   "devDependencies": {
     "codeclimate-test-reporter": "^0.5.0",
     "eslint-codeframe-formatter": "^1.0.2",
+    "fs-extra": "^5.0.0",
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",
     "grunt-contrib-clean": "^1.1.0",

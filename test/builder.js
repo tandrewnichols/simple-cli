@@ -1,5 +1,6 @@
 const chalk = require('chalk');
 const util = require('util');
+const path = require('path');
 const proxyquire = require('proxyquire').noCallThru();
 const sinon = require('sinon');
 const async = require('async');
@@ -13,13 +14,14 @@ describe('builder', () => {
   });
 
   describe('constructor', () => {
-    let options, context, grunt, builder;
+    let options, context, grunt, builder, p;
 
     afterEach(() => {
       Builder.prototype.setConfig.restore();
     })
 
     beforeEach(() => {
+      p = process.env.PATH;
       sinon.stub(Builder.prototype, 'setConfig').callsFake(function() {
         this.config = {
           debug: 'config debug',
@@ -40,7 +42,12 @@ describe('builder', () => {
       grunt = { option: sinon.stub() };
     })
 
+    afterEach(() => {
+      process.env.PATH = p;
+    })
+
     it('should accept options.cmd', () => {
+      process.env.PATH = '/a/b/c:/d/e/f';
       options.cmd = 'cmd';
       builder = new Builder(options, context, grunt);
       builder.cmd.should.equal('cmd');
@@ -54,6 +61,7 @@ describe('builder', () => {
       builder.grunt.should.equal(grunt);
       builder.customOptions.should.equal('options!');
       builder.env.foo.should.equal('bar');
+      builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')}:/a/b/c:/d/e/f`);
     })
 
     it('should accept options.task', () => {

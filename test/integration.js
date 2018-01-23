@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const _ = require('lodash');
+const fs = require('fs-extra');
 
 describe('integration', () => {
   let stdout = '';
@@ -123,5 +124,17 @@ describe('integration', () => {
 
   context('callback', () => {
     it('should call a custom callback', wrap('callback-test:cb', 'Builder', 4));
+  })
+
+  context('a local binary in node_modules/.bin', () => {
+    beforeEach(() => {
+      return fs.ensureSymlink(`${__dirname}/fixtures/local-bin-test.js`, path.resolve(__dirname, '../node_modules/.bin/local-bin-test'));
+    })
+
+    afterEach(() => {
+      return fs.unlink(path.resolve(__dirname, '../node_modules/.bin/local-bin-test'));
+    })
+
+    it('should call a locally installed binary', wrap('local-bin-test:foo', 'Local binary called'));
   })
 })

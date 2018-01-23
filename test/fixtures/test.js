@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var args = process.argv.slice(2).join(' ');
+const args = process.argv.slice(2).join(' ');
 if (process.env.FOO) {
   console.log(args, process.env.FOO);
 } else if (args.indexOf('--cwd') > -1) {

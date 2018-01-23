@@ -172,6 +172,11 @@ module.exports = function(grunt) {
       cb: {
         onComplete: onComplete
       }
+    },
+    'local-bin-test': {
+      foo: {
+        onComplete: onComplete
+      }
     }
   };
 
