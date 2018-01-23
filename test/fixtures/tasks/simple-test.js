@@ -1,5 +1,5 @@
-var cli = require('../../../lib/simple-cli');
-var path = require('path');
+const cli = require('../../../lib/simple-cli');
+const path = require('path');
 
 module.exports = cli({
   task: 'simple-test',
