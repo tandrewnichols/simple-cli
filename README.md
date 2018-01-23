@@ -441,17 +441,25 @@ module.exports = cli({
 
 Optional.
 
-The executable to run if different from the task. This can be useful for wrapping node.js binaries that you want to include as dependencies. Just set cmd equal to path to the local executable, e.g. `<absolute_path>/node_modules/.bin/blah`. Alternatively, you could use this as an alias if the executable is long and tedious to type (like "codeclimate-test-reporter").
+_Prior to version 4.1.0_: The executable to run if different from the task. This can be useful for wrapping node binaries that you want to include as dependencies. Just set cmd equal to path to the local executable, e.g. `<absolute_path>/node_modules/.bin/blah`. Alternatively, you could use this as an alias if the executable is long and tedious to type (like "codeclimate-test-reporter").
+
+_In 4.1.0 and later_: `simple-cli` adds `node_modules/.bin` to the front of the `PATH` environment variable prior to calling the executable (similar to how `npm run foo` works), so anything installed locally should work fine out of the box.
 
 ```js
 var cli = require('simple-cli');
 var path = require('path');
 
+// v4.0.0 and earlier
 module.exports = cli({
   task: 'foo',
   cmd: path.resolve(__dirname, '../node_modules/.bin/foo')
 });
+
+// v4.1.0 and later
+module.exports = cli('foo'); // If node_modules/.bin/foo exists, this will run it.
 ```
+
+Note that the `cmd` option still exists in v4.1.0 and later, but you only need it if, for some reason, you want to name the task something different than the executable.
 
 ### singleDash
 
