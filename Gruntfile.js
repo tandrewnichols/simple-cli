@@ -38,11 +38,11 @@ module.exports = function(grunt) {
     mochaTest: {
       options: {
         reporter: 'list',
-        require: ['should', 'should-sinon'],
+        require: [ 'should', 'should-sinon' ],
         timeout: 3000
       },
       unit: {
-        src: ['test/**/*.js', '!test/integration.js']
+        src: [ 'test/**/*.js', '!test/integration.js' ]
       },
       integration: {
         src: ['test/integration.js']
@@ -58,14 +58,14 @@ module.exports = function(grunt) {
     },
     watch: {
       tests: {
-        files: ['lib/**/*.js', 'test/**/*.js'],
+        files: [ 'lib/**/*.js', 'test/**/*.js' ],
         tasks: ['mocha'],
         options: {
           atBegin: true
         }
       },
       unit: {
-        files: ['lib/**/*.js', 'test/**/*.js', '!test/integration.js'],
+        files: [ 'lib/**/*.js', 'test/**/*.js', '!test/integration.js' ],
         tasks: ['mochaTest:unit'],
         options: {
           atBegin: true
@@ -78,7 +78,7 @@ module.exports = function(grunt) {
           root: 'lib',
           dir: 'coverage',
           simple: {
-            args: ['grunt', 'mochaTest:unit']
+            args: [ 'grunt', 'mochaTest:unit' ]
           }
         }
       }
@@ -90,7 +90,7 @@ module.exports = function(grunt) {
       opts: {
         options: {
           fruit: 'banana',
-          animal: ['tiger', 'moose'],
+          animal: [ 'tiger', 'moose' ],
           multiWord: true,
           negated: false,
           b: 'quux',
@@ -110,7 +110,7 @@ module.exports = function(grunt) {
           cwd: true
         },
         onComplete: onComplete,
-        cwd: __dirname + '/test'
+        cwd: `${__dirname}/test`
       },
       force: {
         options: {
@@ -125,7 +125,7 @@ module.exports = function(grunt) {
       },
       args: {
         onComplete: onComplete,
-        args: ['jingle', 'bells']
+        args: [ 'jingle', 'bells' ]
       },
       raw: {
         onComplete: onComplete,
@@ -180,12 +180,12 @@ module.exports = function(grunt) {
     }
   };
 
-  grunt.initConfig(skipInit ?  testConfig : taskConfig);
+  grunt.initConfig(skipInit ? testConfig : taskConfig);
 
   if (!skipInit) {
     grunt.registerTask('mocha', ['mochaTest']);
-    grunt.registerTask('default', ['eslint:lib', 'mocha']);
+    grunt.registerTask('default', [ 'eslint:lib', 'mocha' ]);
     grunt.registerTask('coverage', ['istanbul']);
-    grunt.registerTask('travis', ['eslint:lib', 'mocha', 'travisMatrix']);
+    grunt.registerTask('travis', [ 'eslint:lib', 'mocha', 'travisMatrix' ]);
   }
 };
