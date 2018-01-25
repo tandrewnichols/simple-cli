@@ -470,8 +470,7 @@ var cli = require('simple-cli');
 var path = require('path');
 
 // v4.0.0 and earlier
-module.exports = cli({
-  task: 'foo',
+module.exports = cli('foo', {
   cmd: path.resolve(__dirname, '../node_modules/.bin/foo')
 });
 
@@ -490,8 +489,7 @@ Set to true for executables that use a `find` style syntax, i.e. a single dash p
 ```js
 var cli = require('simple-cli');
 
-module.exports = cli({
-  task: 'foo',
+module.exports = cli('foo', {
   singleDash: true
 });
 ```
@@ -505,8 +503,7 @@ A function to call after executing the child process. If omitted, this simply ca
 ```js
 var cli = require('simple-cil');
 
-module.exports = cli({
-  task: 'bar',
+module.exports = cli('bar', {
   callback: function() {
     // Do whatever...
     this.done();
@@ -536,8 +533,7 @@ The options object is actually just a way to extend the `simple-cli` API. Keys i
 ```js
 var cli = require('simple-cil');
 
-module.exports = cli({
-  task: 'foo',
+module.exports = cli('foo', {
   custom: {
     moreCowbell: function(val, cb) {
       // val is the user-assigned config value of "moreCowbell," e.g.
