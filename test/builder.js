@@ -297,6 +297,7 @@ describe('builder', () => {
       context = {
         config: {},
         populateFromGrunt: sinon.stub(),
+        getSubcommand: sinon.stub(),
         template: sinon.stub(),
         prompt: sinon.stub(),
         args: [ '{{ a }}', '{{ b }}' ],
@@ -316,6 +317,7 @@ describe('builder', () => {
     it('should prompt for values', () => {
       context.prompt.callsArgWith(1, 'answer');
       context.populateFromGrunt.returns({ a: 'b', b: null });
+      context.getSubcommand.returns(['b']);
       Builder.prototype.getReadlineValues.call(context, ['b'], { a: 'b', b: null }, '{{ a }}||{{ b }}', cb);
       context.prompt.should.have.been.calledWith('b', sinon.match.func);
       rl.close.should.have.been.called;
@@ -329,6 +331,7 @@ describe('builder', () => {
     it('should handle errors in readline', () => {
       sinon.stub(async, 'reduce');
       async.reduce.callsArgWith(3, 'error');
+      context.getSubcommand.returns(['b']);
       Builder.prototype.getReadlineValues.call(context, ['b'], { a: 'b', b: null }, '{{ a }}||{{ b }}', cb);
       rl.close.should.have.been.called;
       context.grunt.fail.fatal.should.have.been.calledWith('error');
@@ -410,12 +413,51 @@ describe('builder', () => {
     });
   });
 
+  describe('getSubcommand', () => {
+    it('should return only cmd when standalone is true', () => {
+      const context = {
+        cmd: 'cmd',
+        standalone: true
+      };
+      Builder.prototype.getSubcommand.call(context).should.eql(['cmd']);
+    });
+
+    it('should return only cmd when config.cmd is false', () => {
+      const context = {
+        config: {
+          cmd: false
+        },
+        cmd: 'cmd'
+      };
+      Builder.prototype.getSubcommand.call(context).should.eql(['cmd']);
+    });
+
+    it('should return cmd and target otherwise', () => {
+      const context = {
+        config: {},
+        cmd: 'cmd',
+        target: 'target'
+      };
+      Builder.prototype.getSubcommand.call(context).should.eql([ 'cmd', 'target' ]);
+    });
+
+    it('should return only target when excludeCmd is passed in', () => {
+      const context = {
+        config: {},
+        cmd: 'cmd',
+        target: 'target'
+      };
+      Builder.prototype.getSubcommand.call(context, true).should.eql(['target']);
+    });
+  });
+
   describe('.debug', () => {
     let ctx;
 
     beforeEach(() => {
       ctx = {
         callComplete: sinon.stub(),
+        getSubcommand: sinon.stub().returns([ 'cmd', 'target' ]),
         grunt: {
           log: {
             writeln: sinon.stub()
@@ -453,32 +495,6 @@ describe('builder', () => {
         ctx.config.debug = true;
         Builder.prototype.debug.call(ctx);
         ctx.grunt.log.writeln.should.have.been.calledWith(`Command: ${chalk.cyan('cmd target foo bar')}`);
-        ctx.grunt.log.writeln.should.have.been.calledWith();
-        ctx.grunt.log.writeln.should.have.been.calledWith(`Options: ${chalk.cyan(util.inspect({
-          env: 'env',
-          cwd: 'cwd'
-        }))}`);
-        ctx.callComplete.should.have.been.calledWith(1, '[DEBUG]: stderr', '[DEBUG]: stdout');
-      });
-
-      it('should not include target when standalone is true', () => {
-        ctx.standalone = true;
-        ctx.config.debug = true;
-        Builder.prototype.debug.call(ctx);
-        ctx.grunt.log.writeln.should.have.been.calledWith(`Command: ${chalk.cyan('cmd foo bar')}`);
-        ctx.grunt.log.writeln.should.have.been.calledWith();
-        ctx.grunt.log.writeln.should.have.been.calledWith(`Options: ${chalk.cyan(util.inspect({
-          env: 'env',
-          cwd: 'cwd'
-        }))}`);
-        ctx.callComplete.should.have.been.calledWith(1, '[DEBUG]: stderr', '[DEBUG]: stdout');
-      });
-
-      it('should not include target when standalone is true', () => {
-        ctx.config.debug = true;
-        ctx.config.cmd = false;
-        Builder.prototype.debug.call(ctx);
-        ctx.grunt.log.writeln.should.have.been.calledWith(`Command: ${chalk.cyan('cmd foo bar')}`);
         ctx.grunt.log.writeln.should.have.been.calledWith();
         ctx.grunt.log.writeln.should.have.been.calledWith(`Options: ${chalk.cyan(util.inspect({
           env: 'env',
@@ -547,6 +563,7 @@ describe('builder', () => {
 
       ctx = {
         callComplete: sinon.stub(),
+        getSubcommand: sinon.stub().returns(['target']),
         callback: sinon.stub(),
         cmd: 'cmd',
         target: 'target',
@@ -583,42 +600,6 @@ describe('builder', () => {
         close(1);
         ctx.callComplete.should.have.been.calledWith(1, 'error', 'data');
         ctx.grunt.log.writeln.should.not.have.been.called;
-      });
-    });
-
-    context('in standalone mode', () => {
-      beforeEach(() => {
-        ctx.standalone = true;
-        ctx.config.force = true;
-        spawn.withArgs('cmd', [ 'foo', 'bar' ], { env: 'env', cwd: 'cwd' }).returns(child);
-        Builder.prototype.spawn.call(ctx);
-        child.stdout.on.getCall(0).args[1]('data');
-        child.stderr.on.getCall(0).args[1]('error');
-        close = child.on.getCall(0).args[1];
-      });
-
-      it('should not pass target', () => {
-        close(1);
-        ctx.grunt.log.writeln.should.have.been.calledWith('cmd:target returned code 1. Ignoring...');
-        ctx.callComplete.should.have.been.calledWith(0, 'error', 'data');
-      });
-    });
-
-    context('when the user calls the binary default with no subcommand', () => {
-      beforeEach(() => {
-        ctx.config.cmd = false;
-        ctx.config.force = true;
-        spawn.withArgs('cmd', [ 'foo', 'bar' ], { env: 'env', cwd: 'cwd' }).returns(child);
-        Builder.prototype.spawn.call(ctx);
-        child.stdout.on.getCall(0).args[1]('data');
-        child.stderr.on.getCall(0).args[1]('error');
-        close = child.on.getCall(0).args[1];
-      });
-
-      it('should not pass target', () => {
-        close(1);
-        ctx.grunt.log.writeln.should.have.been.calledWith('cmd:target returned code 1. Ignoring...');
-        ctx.callComplete.should.have.been.calledWith(0, 'error', 'data');
       });
     });
 
