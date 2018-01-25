@@ -72,8 +72,7 @@
     "no-tabs": "error",
     "no-whitespace-before-property": "error",
     "object-curly-newline": ["error", {
-      "ObjectExpression": { "consistent": true },
-      "ObjectPattern": { "consistent": true }
+      ""consistent": true
     }],
     "object-curly-spacing": ["error", "always", {
       "arraysInObjects": false,
