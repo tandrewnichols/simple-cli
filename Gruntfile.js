@@ -42,7 +42,7 @@ module.exports = function(grunt) {
         timeout: 3000
       },
       unit: {
-        src: [ 'test/**/*.js', '!test/integration.js' ]
+        src: [ 'test/**/*.js', '!test/fixtures/**', '!test/integration.js' ]
       },
       integration: {
         src: ['test/integration.js']
@@ -65,8 +65,15 @@ module.exports = function(grunt) {
         }
       },
       unit: {
-        files: [ 'lib/**/*.js', 'test/**/*.js', '!test/integration.js' ],
+        files: [ 'lib/**/*.js', 'test/**/*.js', '!test/fixtures/**', '!test/integration.js' ],
         tasks: ['mochaTest:unit'],
+        options: {
+          atBegin: true
+        }
+      },
+      int: {
+        files: [ 'lib/**/*.js', 'test/integration.js', 'test/fixtures/**' ],
+        tasks: ['mochaTest:integration'],
         options: {
           atBegin: true
         }
