@@ -14,7 +14,7 @@ npm install --save simple-cli
 
 ### cli(task[, options])
 
-`task` is a string that will be assigned as the name of the grunt task. It is also (by default) the name of the executable being wrapped, but you can override this with [cmd](#cmd-2).
+`task` is a string that will be assigned as the name of the grunt task. It is also (by default) the name of the executable being wrapped, but you can override this with [cmd](#cmd-1).
 
 `options` is an object that configures how simple-cli handles the executable. See [options](#options).
 
@@ -608,4 +608,4 @@ Now, when `grunt nyc:mocha` is run, the command it will generate will be `nyc --
 
 Optional.
 
-Some executables don't have subcommands, like `mkdir` for example. If you're wrapping an executable of this type, pass `standalone: true` in the options and simple-cli will not include a subcommand in the shell command it generates. Note that this option is only for executables that _always_ and _only_ standalone. Some executables do some default thing when no subcommand is passed, but still support subcommands. `mocha`, for example, runs tests when run by itself, but you can also say `mocha init` to setup a project. For this kind of executable, see `cmd: false` [above](#cmd-1).
+Some executables don't have subcommands, like `mkdir` for example. If you're wrapping an executable of this type, pass `standalone: true` in the options and simple-cli will not include a subcommand in the shell command it generates. Note that this option is only for executables that _always_ and _only_ standalone. Some executables do some default thing when no subcommand is passed, but still support subcommands. `mocha`, for example, runs tests when run by itself, but you can also say `mocha init` to setup a project. For this kind of executable, see `cmd: false` [above](#cmd).
