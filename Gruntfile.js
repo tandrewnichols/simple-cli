@@ -153,6 +153,13 @@ module.exports = function(grunt) {
         },
         onComplete,
         args: ['{{ hello.world }}']
+      },
+      'no-sub': {
+        options: {
+          foo: 'bar'
+        },
+        args: [ 'baz', 'quux' ],
+        cmd: false
       }
     },
     proxy: {},

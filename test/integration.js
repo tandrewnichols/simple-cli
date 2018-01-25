@@ -148,4 +148,8 @@ describe('integration', () => {
   context('no subcommand with flags first', () => {
     it('should put the flags before the args and not add a cmd', wrap('standalone-flags', '--foo bar baz quux -- blah'));
   });
+
+  context('binaries that can be called as a default or with subcommands', () => {
+    it('should ignore target when cmd is false', wrap('simple-test:no-sub', 'baz quux --foo bar'));
+  });
 });

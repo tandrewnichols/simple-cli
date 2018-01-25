@@ -293,6 +293,7 @@ describe('builder', () => {
     beforeEach(() => {
       cb = sinon.stub();
       context = {
+        config: {},
         populateFromGrunt: sinon.stub(),
         template: sinon.stub(),
         prompt: sinon.stub(),
@@ -470,18 +471,33 @@ describe('builder', () => {
         }))}`);
         ctx.callComplete.should.have.been.calledWith(1, '[DEBUG]: stderr', '[DEBUG]: stdout');
       });
+
+      it('should not include target when standalone is true', () => {
+        ctx.config.debug = true;
+        ctx.config.cmd = false;
+        Builder.prototype.debug.call(ctx);
+        ctx.grunt.log.writeln.should.have.been.calledWith(`Command: ${chalk.cyan('cmd foo bar')}`);
+        ctx.grunt.log.writeln.should.have.been.calledWith();
+        ctx.grunt.log.writeln.should.have.been.calledWith(`Options: ${chalk.cyan(util.inspect({
+          env: 'env',
+          cwd: 'cwd'
+        }))}`);
+        ctx.callComplete.should.have.been.calledWith(1, '[DEBUG]: stderr', '[DEBUG]: stdout');
+      });
     });
 
-    it('should call a default with no onComplete', () => {
-      delete ctx.config.onComplete;
-      Builder.prototype.debug.call(ctx);
-      ctx.grunt.log.writeln.should.have.been.calledWith(`Command: ${chalk.cyan('cmd target foo bar')}`);
-      ctx.grunt.log.writeln.should.have.been.calledWith();
-      ctx.grunt.log.writeln.should.have.been.calledWith(`Options: ${chalk.cyan(util.inspect({
-        env: 'env',
-        cwd: 'cwd'
-      }))}`);
-      ctx.callback.should.have.been.called;
+    context('wihout onComplete', () => {
+      it('should call a default', () => {
+        delete ctx.config.onComplete;
+        Builder.prototype.debug.call(ctx);
+        ctx.grunt.log.writeln.should.have.been.calledWith(`Command: ${chalk.cyan('cmd target foo bar')}`);
+        ctx.grunt.log.writeln.should.have.been.calledWith();
+        ctx.grunt.log.writeln.should.have.been.calledWith(`Options: ${chalk.cyan(util.inspect({
+          env: 'env',
+          cwd: 'cwd'
+        }))}`);
+        ctx.callback.should.have.been.called;
+      });
     });
   });
 
@@ -571,6 +587,24 @@ describe('builder', () => {
     context('in standalone mode', () => {
       beforeEach(() => {
         ctx.standalone = true;
+        ctx.config.force = true;
+        spawn.withArgs('cmd', [ 'foo', 'bar' ], { env: 'env', cwd: 'cwd' }).returns(child);
+        Builder.prototype.spawn.call(ctx);
+        child.stdout.on.getCall(0).args[1]('data');
+        child.stderr.on.getCall(0).args[1]('error');
+        close = child.on.getCall(0).args[1];
+      });
+
+      it('should not pass target', () => {
+        close(1);
+        ctx.grunt.log.writeln.should.have.been.calledWith('cmd:target returned code 1. Ignoring...');
+        ctx.callComplete.should.have.been.calledWith(0, 'error', 'data');
+      });
+    });
+
+    context('when the user calls the binary default with no subcommand', () => {
+      beforeEach(() => {
+        ctx.config.cmd = false;
         ctx.config.force = true;
         spawn.withArgs('cmd', [ 'foo', 'bar' ], { env: 'env', cwd: 'cwd' }).returns(child);
         Builder.prototype.spawn.call(ctx);
