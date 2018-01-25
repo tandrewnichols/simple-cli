@@ -115,7 +115,7 @@ describe('integration', () => {
       child.on('close', () => {
         let lines = stdout.split('\n').map(line => line.trim());
         let index = lines.findIndex(line => line.includes('opts-test'));
-        `${lines[index]} ${lines[index + 1]}${lines[index + 2]}`.should.containEql(`opts-test  A simple-cli grunt wrapper for ${__dirname}/fixtures/test.js`);
+        `${lines[index]} ${lines[index + 1]}${lines[index + 2]}`.should.containEql(`opts-test  A simple grunt wrapper for ${__dirname}/fixtures/test.js`);
         done();
       });
     });
@@ -135,5 +135,17 @@ describe('integration', () => {
     });
 
     it('should call a locally installed binary', wrap('local-bin-test:foo', 'Local binary called'));
+  });
+
+  context('flags first', () => {
+    it('should put the flags before the args', wrap('flags-first:args', 'args --foo bar baz quux'));
+  });
+
+  context('no subcommand', () => {
+    it('should not add a cmd', wrap('standalone:no-sub', 'baz quux --foo bar'));
+  });
+
+  context('no subcommand with flags first', () => {
+    it('should put the flags before the args and not add a cmd', wrap('standalone-flags', '--foo bar baz quux -- blah'));
   });
 });

@@ -97,10 +97,10 @@ module.exports = function(grunt) {
           c: true,
           'author=': 'Andrew'
         },
-        onComplete: onComplete
+        onComplete,
       },
       env: {
-        onComplete: onComplete,
+        onComplete,
         env: {
           FOO: 'BAR'
         }
@@ -109,34 +109,34 @@ module.exports = function(grunt) {
         options: {
           cwd: true
         },
-        onComplete: onComplete,
+        onComplete,
         cwd: `${__dirname}/test`
       },
       force: {
         options: {
           fail: true
         },
-        onComplete: onComplete,
+        onComplete,
         force: true
       },
       cmd: {
-        onComplete: onComplete,
+        onComplete,
         cmd: 'not-cmd'
       },
       args: {
-        onComplete: onComplete,
+        onComplete,
         args: [ 'jingle', 'bells' ]
       },
       raw: {
-        onComplete: onComplete,
+        onComplete,
         rawArgs: '-- $% "hello" '
       },
       debug: {
-        onComplete: onComplete,
+        onComplete,
         debug: true
       },
       stdout: {
-        onComplete: onComplete,
+        onComplete,
         debug: {
           stdout: 'Hey banana'
         }
@@ -145,37 +145,65 @@ module.exports = function(grunt) {
         options: {
           foo: '{{ foo }}'
         },
-        onComplete: onComplete
+        onComplete,
       },
       'dynamic-nested': {
         options: {
           foo: '{{ foo }}'
         },
-        onComplete: onComplete,
+        onComplete,
         args: ['{{ hello.world }}']
       }
     },
     proxy: {},
     'opts-test': {
       custom: {
-        onComplete: onComplete,
+        onComplete,
         foo: 'Ned'
       },
       dash: {
         options: {
           foo: 'bar'
         },
-        onComplete: onComplete
+        onComplete,
       }
     },
     'callback-test': {
       cb: {
-        onComplete: onComplete
+        onComplete,
       }
     },
     'local-bin-test': {
       foo: {
-        onComplete: onComplete
+        onComplete,
+      }
+    },
+    'flags-first': {
+      args: {
+        onComplete,
+        options: {
+          foo: 'bar'
+        },
+        args: [ 'baz', 'quux' ]
+      }
+    },
+    standalone: {
+      'no-sub': {
+        onComplete,
+        options: {
+          foo: 'bar'
+        },
+        args: [ 'baz', 'quux' ]
+      }
+    },
+    'standalone-flags': {
+      test: {
+        onComplete,
+        options: {
+          foo: 'bar'
+        },
+        args: [ 'baz', 'quux' ],
+        rawArgs: '-- blah'
       }
     }
   };
@@ -183,7 +211,9 @@ module.exports = function(grunt) {
   grunt.initConfig(skipInit ? testConfig : taskConfig);
 
   if (!skipInit) {
-    grunt.registerTask('mocha', ['mochaTest']);
+    grunt.registerTask('unit', ['mochaTest:unit']);
+    grunt.registerTask('int', ['mochaTest:integration']);
+    grunt.registerTask('mocha', [ 'unit', 'int' ]);
     grunt.registerTask('default', [ 'eslint:lib', 'mocha' ]);
     grunt.registerTask('coverage', ['istanbul']);
     grunt.registerTask('travis', [ 'eslint:lib', 'mocha', 'travisMatrix' ]);

@@ -501,7 +501,7 @@ Other properties available on the `this` object within this method are:
 * this.cmd -> the command executed via child process
 * this.options -> the task options
 * this.config -> the task configuration (e.g. `cmd`, `args`, `rawArgs`, `env`, etc.)
-* this.customOptions -> custom options parsers provided by your wrapper
+* this.custom -> custom options parsers provided by your wrapper
 * this.env -> environment variables to supply to the child process
 * this.target -> the command to run on the executable (e.g. "commit" in "git commit")
 * this.args -> the full array of command line args supplied to the executable
