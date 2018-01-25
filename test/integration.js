@@ -127,11 +127,11 @@ describe('integration', () => {
 
   context('a local binary in node_modules/.bin', () => {
     beforeEach(() => {
-      return fs.ensureSymlink(`${__dirname}/fixtures/local-bin-test.js`, path.resolve(__dirname, '../node_modules/.bin/local-bin-test'));
+      return fs.ensureSymlink(`${__dirname}/fixtures/local-bin-test`, path.resolve(__dirname, '../node_modules/local-bin-test'));
     });
 
     afterEach(() => {
-      return fs.unlink(path.resolve(__dirname, '../node_modules/.bin/local-bin-test'));
+      return fs.unlink(path.resolve(__dirname, '../node_modules/local-bin-test'));
     });
 
     it('should call a locally installed binary', wrap('local-bin-test:foo', 'Local binary called'));
