@@ -85,6 +85,9 @@ module.exports = function(grunt) {
           root: 'lib',
           dir: 'coverage',
           simple: {
+            env: {
+              FORCE_COLOR: true
+            },
             args: [ 'grunt', 'mochaTest:unit' ]
           }
         }
