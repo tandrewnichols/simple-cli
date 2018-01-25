@@ -48,7 +48,7 @@
     "proxyquire": "^1.8.0",
     "should": "^13.2.1",
     "should-sinon": "0.0.6",
-    "sinon": "^4.2.0"
+    "sinon": "^4.2.1"
   },
   "dependencies": {
     "async": "^2.6.0",
