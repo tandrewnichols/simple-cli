@@ -16,7 +16,7 @@ describe('builder', () => {
   });
 
   describe('constructor', () => {
-    let options, context, grunt, builder, p;
+    let options, context, grunt, builder, p, originalPlatform;
 
     afterEach(() => {
       Builder.prototype.setConfig.restore();
@@ -37,6 +37,7 @@ describe('builder', () => {
       sinon.stub(Builder.prototype, 'buildArgs').returns('args');
 
       options = {
+        cmd: 'cmd',
         singleDash: true,
         custom: 'options!'
       };
@@ -46,15 +47,18 @@ describe('builder', () => {
         options: sinon.stub().withArgs({}).returns('options')
       };
       grunt = { option: sinon.stub() };
+
+      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+      Object.defineProperty(process, 'platform', {value: 'linux'});
     });
 
     afterEach(() => {
       process.env.PATH = p;
+      Object.defineProperty(process, 'platform', originalPlatform);
     });
 
     it('should accept options.cmd', () => {
       process.env.PATH = '/a/b/c:/d/e/f';
-      options.cmd = 'cmd';
       builder = new Builder(options, context, grunt);
       builder.cmd.should.equal('cmd');
       builder.singleDash.should.be.true();
@@ -69,6 +73,42 @@ describe('builder', () => {
       builder.env.foo.should.equal('bar');
       builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')}:/a/b/c:/d/e/f`);
       builder.args = 'args';
+    });
+
+    describe('on win32', () => {
+      let originalPlatform;
+      beforeEach(() => {
+          originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+          Object.defineProperty(process, 'platform', {value: 'win32'});
+      });
+
+      afterEach(() => {
+          Object.defineProperty(process, 'platform', originalPlatform);
+      });
+
+      it('should build the PATH using semicolon ;', () => {
+          process.env.PATH = '/a/b/c;/d/e/f';
+          builder = new Builder(options, context, grunt);
+          builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')};/a/b/c;/d/e/f`);
+      });
+    });
+
+    describe('on non-win32 platforms', () => {
+      let originalPlatform;
+      beforeEach(() => {
+          originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+          Object.defineProperty(process, 'platform', {value: 'linux'});
+      });
+
+      afterEach(() => {
+          Object.defineProperty(process, 'platform', originalPlatform);
+      });
+
+      it('should build the PATH using colon :', () => {
+          process.env.PATH = '/a/b/c:/d/e/f';
+          builder = new Builder(options, context, grunt);
+          builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')}:/a/b/c:/d/e/f`);
+      });
     });
   });
 
