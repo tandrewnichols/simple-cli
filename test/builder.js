@@ -10,7 +10,7 @@ describe('builder', () => {
   const readline = { createInterface: sinon.stub() };
   const resolve = sinon.stub().withArgs('cmd').returns(path.resolve(__dirname, '../node_modules/cmd/index.js'));
   const Builder = proxyquire('../lib/builder', {
-    'win-spawn': spawn,
+    'cross-spawn': spawn,
     readline: readline,
     './resolve': resolve
   });
