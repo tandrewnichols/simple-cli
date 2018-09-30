@@ -498,15 +498,15 @@ module.exports = cli('foo', {
 
 Optional.
 
-A function to call after executing the child process. If omitted, this simply calls grunt's `this.async()` method to trigger the task completion. If you supply this, you will have to call that method yourself. It will be set on the context within the function as `done`, and, as always with grunt, calling it with a code will fail the task.
+A function to call after executing the child process. The child process code will be passed to this function. If omitted, this simply calls grunt's `this.async()` method to trigger the task completion. If you supply this options, you will have to call that method yourself. It will be set on the context within the function as `done`. Call this function with false or an Error to fail the task.
 
 ```js
 var cli = require('simple-cil');
 
 module.exports = cli('bar', {
-  callback: function() {
+  callback: function(code) {
     // Do whatever...
-    this.done();
+    this.done(code === 0);
   }
 });
 ```

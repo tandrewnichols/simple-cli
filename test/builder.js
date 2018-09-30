@@ -654,8 +654,8 @@ describe('builder', () => {
       });
 
       it('should call the callback on success', () => {
-        close();
-        ctx.callback.should.have.been.calledWith(undefined);
+        close(0);
+        ctx.callback.should.have.been.calledWith(0);
         ctx.grunt.log.writeln.should.not.have.been.called;
       });
 
