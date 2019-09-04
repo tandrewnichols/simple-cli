@@ -49,7 +49,7 @@ describe('builder', () => {
       grunt = { option: sinon.stub() };
 
       originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
-      Object.defineProperty(process, 'platform', {value: 'linux'});
+      Object.defineProperty(process, 'platform', { value: 'linux' });
     });
 
     afterEach(() => {
@@ -78,36 +78,32 @@ describe('builder', () => {
     describe('on win32', () => {
       let originalPlatform;
       beforeEach(() => {
-          originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
-          Object.defineProperty(process, 'platform', {value: 'win32'});
+        originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+        Object.defineProperty(process, 'platform', { value: 'win32' });
       });
 
-      afterEach(() => {
-          Object.defineProperty(process, 'platform', originalPlatform);
-      });
+      afterEach(() => Object.defineProperty(process, 'platform', originalPlatform));
 
       it('should build the PATH using semicolon ;', () => {
-          process.env.PATH = '/a/b/c;/d/e/f';
-          builder = new Builder(options, context, grunt);
-          builder.env.Path.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')};/a/b/c;/d/e/f`);
+        process.env.PATH = '/a/b/c;/d/e/f';
+        builder = new Builder(options, context, grunt);
+        builder.env.Path.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')};/a/b/c;/d/e/f`);
       });
     });
 
     describe('on non-win32 platforms', () => {
       let originalPlatform;
       beforeEach(() => {
-          originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
-          Object.defineProperty(process, 'platform', {value: 'linux'});
+        originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+        Object.defineProperty(process, 'platform', { value: 'linux' });
       });
 
-      afterEach(() => {
-          Object.defineProperty(process, 'platform', originalPlatform);
-      });
+      afterEach(() => Object.defineProperty(process, 'platform', originalPlatform));
 
       it('should build the PATH using colon :', () => {
-          process.env.PATH = '/a/b/c:/d/e/f';
-          builder = new Builder(options, context, grunt);
-          builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')}:/a/b/c:/d/e/f`);
+        process.env.PATH = '/a/b/c:/d/e/f';
+        builder = new Builder(options, context, grunt);
+        builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')}:/a/b/c:/d/e/f`);
       });
     });
   });
