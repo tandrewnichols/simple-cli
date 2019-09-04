@@ -56,8 +56,8 @@ describe('integration', () => {
       child.stdout.on('data', data => stdout += data.toString());
       child.on('close', () => {
         let lines = stdout.split('\n');
-        lines[1].should.equal(`Command: ${__dirname}/fixtures/test.js debug`);
-        lines[3].should.equal('Options: { env: ');
+        lines[1].trim().should.equal(`Command: ${__dirname}/fixtures/test.js debug`);
+        lines[3].trim().should.equal('Options: { env:');
         lines[lines.length - 4].should.equal('[DEBUG]: stdout');
         done();
       });
@@ -70,8 +70,8 @@ describe('integration', () => {
       child.stdout.on('data', data => stdout += data.toString());
       child.on('close', () => {
         let lines = stdout.split('\n');
-        lines[1].should.equal(`Command: ${__dirname}/fixtures/test.js stdout`);
-        lines[3].should.equal('Options: { env: ');
+        lines[1].trim().should.equal(`Command: ${__dirname}/fixtures/test.js stdout`);
+        lines[3].trim().should.equal('Options: { env:');
         lines[lines.length - 4].should.equal('Hey banana');
         done();
       });

@@ -89,7 +89,7 @@ describe('builder', () => {
       it('should build the PATH using semicolon ;', () => {
           process.env.PATH = '/a/b/c;/d/e/f';
           builder = new Builder(options, context, grunt);
-          builder.env.PATH.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')};/a/b/c;/d/e/f`);
+          builder.env.Path.should.equal(`${path.resolve(__dirname, '../node_modules/.bin')};/a/b/c;/d/e/f`);
       });
     });
 
