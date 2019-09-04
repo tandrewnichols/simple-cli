@@ -49,10 +49,8 @@ module.exports = function(grunt) {
       }
     },
     travisMatrix: {
-      v8: {
-        test: function() {
-          return /^v8/.test(process.version);
-        },
+      v10: {
+        test: () => /^v11/.test(process.version),
         tasks: ['istanbul:cover']
       }
     },
